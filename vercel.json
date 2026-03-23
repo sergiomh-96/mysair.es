@@ -1,0 +1,24 @@
+{
+  "redirects": [
+    {
+      "source": "/cloud/descargas_mysair/Catalogo/Tarifas/Tarifa_MYSAir.pdf",
+      "destination": "https://drive.google.com/file/d/1PQn9--AIdggMvCfRjsEMwbJzYGA-rKrN/view",
+      "permanent": true
+    },
+    {
+      "source": "/cloud/descargas_mysair/Catalogo/Catalogo_MYSAir.pdf",
+      "destination": "https://drive.google.com/open?id=1xfpcFTAXglOoxoC-Yxxgrwn0B_W4qtED&usp=drive_fs",
+      "permanent": true
+    },
+    {
+      "source": "/cloud/descargas_mysair/Integracion_MYSAir_Home_Assistant.pdf",
+      "destination": "https://drive.google.com/open?id=1o4csvt25cHZDET1w0I-8pTbKTIrKk8GG&usp=drive_fs",
+      "permanent": true
+    },
+    {
+      "source": "/cloud/descargas_mysair/HA_MYSAir.zip",
+      "destination": "https://drive.google.com/open?id=16nS13vEJ-CyxrFBR3gNG5fXo7j9PCruG&usp=drive_fs",
+      "permanent": true
+    }
+  ]
+}
