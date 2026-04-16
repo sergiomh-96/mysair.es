@@ -1,12 +1,16 @@
+"use client"
+
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calculator, Pencil } from "lucide-react"
 import { DiffuserSelector } from "@/components/diffuser-selector"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useI18n } from "@/lib/i18n-context"
 
 export default function SoftwarePage() {
+  const { t } = useI18n()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -16,10 +20,10 @@ export default function SoftwarePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 text-balance">
-              Software de selección MYSAir
+              {t("software.title")}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto text-pretty">
-              Soluciones de software avanzadas para el control y gestión de sistemas de climatización
+              {t("software.subtitle")}
             </p>
           </div>
         </div>
@@ -30,7 +34,7 @@ export default function SoftwarePage() {
         <DiffuserSelector />
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Dark overlay for text readability */}
+          {/* MYS Solver */}
           <div
             className="rounded-lg p-8 text-white flex flex-col items-center text-center relative overflow-hidden group"
             style={{
@@ -40,23 +44,22 @@ export default function SoftwarePage() {
               minHeight: "400px",
             }}
           >
-            {/* Dark overlay for text readability */}
             <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors"></div>
             <div className="relative z-10">
-              
-              <h2 className="text-3xl mb-2 font-black">MYS Solver 2.0</h2>
-              <p className="text-xl mb-4 text-popover">Cálculo de instalaciones climáticas</p>
+              <h2 className="text-3xl mb-2 font-black">{t("software.solver_title")}</h2>
+              <p className="text-xl mb-4 text-popover">{t("software.solver_subtitle")}</p>
               <p className="max-w-xl mb-6 flex-grow text-card">
-                Herramienta profesional para el dimensionamiento y cálculo de sistemas de climatización
+                {t("software.solver_desc")}
               </p>
               <Link href="/software/mys-solver">
                 <Button size="lg" variant="secondary" className="text-lg px-8">
-                  Acceder a MYS Solver 2.0
+                  {t("software.solver_btn")}
                 </Button>
               </Link>
             </div>
           </div>
 
+          {/* MYS Draw */}
           <div
             className="rounded-lg p-8 text-white flex flex-col items-center text-center relative overflow-hidden group"
             style={{
@@ -66,20 +69,16 @@ export default function SoftwarePage() {
               minHeight: "400px",
             }}
           >
-            {/* Dark overlay for text readability */}
             <div className="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors"></div>
             <div className="relative z-10">
-              
-              <h2 className="text-3xl mb-2 font-black">MYS Draw 2.0</h2>
-              <p className="text-xl mb-4 text-popover">Diseño de instalaciones climáticas por conductos</p>
+              <h2 className="text-3xl mb-2 font-black">{t("software.draw_title")}</h2>
+              <p className="text-xl mb-4 text-popover">{t("software.draw_subtitle")}</p>
               <p className="max-w-xl mb-6 flex-grow text-white">
-                Software online profesional para el cálculo y diseño de instalaciones climáticas por conductos. Calcula
-                difusión, potencia térmica necesaria, dimensionamiento de máquinas de aire y mucho más. Genera un
-                informe completo en pdf de tu instalación.
+                {t("software.draw_desc")}
               </p>
               <Link href="https://www.mysdraw.es/">
                 <Button size="lg" variant="secondary" className="text-lg px-8">
-                  Acceder a MYS Draw 2.0
+                  {t("software.draw_btn")}
                 </Button>
               </Link>
             </div>
@@ -88,13 +87,13 @@ export default function SoftwarePage() {
 
         <Card className="max-w-3xl mx-auto">
           <CardContent className="py-12 px-8 text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">¿Necesitas ayuda con tu instalación?</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">{t("software.help_title")}</h3>
             <p className="text-lg text-gray-600 mb-8">
-              Si quieres que nuestros técnicos realicen el estudio de tu instalación ponte en contacto con nosotros
+              {t("software.help_desc")}
             </p>
             <Link href="/contacto">
               <Button size="lg" className="text-lg px-8">
-                Contactar con nosotros
+                {t("software.help_cta")}
               </Button>
             </Link>
           </CardContent>

@@ -1,0 +1,389 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "products_diffusion": "Air Diffusion",
+    "products_zones": "Smart Systems",
+    "products_vmc": "VMC",
+    "documentation": "Documentation",
+    "software": "Software",
+    "blogs": "Blogs",
+    "about": "About Us",
+    "contact": "Contact",
+    "client_area": "Client Area"
+  },
+  "hero": {
+    "title": "Regulation and control solutions for air conditioning",
+    "description": "Discover our selection of products for zoning and air diffusion in residential and commercial installations.",
+    "view_products": "View Products",
+    "efficiency": "Efficiency",
+    "energy_saving": "Energy saving"
+  },
+  "products_preview": {
+    "title": "Zoning systems allow you to control the temperature of each room independently, achieving total comfort and significant energy savings",
+    "subtitle": "Discover our products ->",
+    "view_all": "View All Products",
+    "categories": {
+      "diffusion": {
+        "title": "Air Diffusion",
+        "description": "High-quality grilles, dampers and diffusers for optimal air distribution.",
+        "p1": "Linear grilles",
+        "p2": "Circular diffusers",
+        "p3": "Regulation dampers"
+      },
+      "zones": {
+        "title": "Smart Systems",
+        "description": "Intelligent zoning solutions and automatic climate control.",
+        "p1": "Smart zoning",
+        "p2": "Digital thermostats",
+        "p3": "Remote control"
+      },
+      "vmc": {
+        "title": "VMC",
+        "description": "Controlled Mechanical Ventilation systems for efficient air renewal.",
+        "p1": "Heat recovery units",
+        "p2": "Residential systems",
+        "p3": "Filtration units"
+      }
+    }
+  },
+  "regulation_control": {
+    "title": "MYSAir Regulation and Control Solutions",
+    "description": "Advanced technology for intelligent climate management. Discover our systems designed to maximize efficiency and comfort.",
+    "rite": {
+      "title": "Zoning compliance according to RITE 178/2021",
+      "description": "The 2021 RITE updates the rules for thermal zoning in buildings, requiring that installations be designed by clearly defined thermal zones. This allows for precise regulation of heating, cooling and ventilation according to the real needs of each space, optimizing energy efficiency and indoor comfort.",
+      "f1": "Zoned control per room",
+      "f2": "Air and radiant floor control",
+      "f3": "Time programming per room",
+      "button": "View RITE justification document"
+    },
+    "integration": {
+      "title": "Communication and integration with A/C and fan coil units",
+      "description": "Unified management of direct expansion and fan coil units from the leading brands on the market. Total control of the indoor unit from the MYSAir system, guaranteeing unified central control.",
+      "f1": "Compatibility with major brands",
+      "f2": "Cable or IR communication",
+      "f3": "Management of working modes and temperature",
+      "button": "More information"
+    },
+    "domotics": {
+      "title": "Domotic integrations",
+      "description": "Solutions for integration with automation and domotic systems using MODBUS, KNX or API protocols. Control your installation from anywhere using our MYSAir APP",
+      "f1": "Modbus RTU, WiFi, 868MHz, API",
+      "f2": "KNX, LOXONE, FIBARO",
+      "f3": "HomeAssistant, AlfredSmart",
+      "button": "More information"
+    }
+  },
+  "mobile_app": {
+    "title": "MYSAir App",
+    "description": "Control your air conditioning system from anywhere with our intuitive and powerful mobile app",
+    "features": {
+      "remote": {
+        "title": "Remote Control",
+        "description": "Adjust temperature, speed and mode from anywhere"
+      },
+      "monitoring": {
+        "title": "24/7 Monitoring",
+        "description": "Monitor the status and performance of your system in real time"
+      },
+      "programming": {
+        "title": "Programming",
+        "description": "Create personalized schedules for maximum comfort and efficiency"
+      },
+      "advanced": {
+        "title": "Advanced Configuration",
+        "description": "Customize every aspect according to your specific preferences"
+      }
+    },
+    "available_on": "Available on"
+  },
+  "why_choose": {
+    "title": "Why choose MYSAIR?",
+    "description": "We are your trusted partner in air conditioning and home automation, offering innovative solutions and exceptional service that makes a difference.",
+    "reasons": {
+      "experience": {
+        "title": "Over 15 years of experience",
+        "description": "Leaders in the air conditioning and home automation sector with a proven track record of excellence."
+      },
+      "quality": {
+        "title": "Guaranteed quality",
+        "description": "Certified products and services backed by the best brands on the market."
+      },
+      "team": {
+        "title": "Specialized team",
+        "description": "Highly qualified technicians in constant training to offer the best solutions."
+      },
+      "service": {
+        "title": "Comprehensive service",
+        "description": "From design to installation and maintenance, we cover all your needs."
+      }
+    }
+  },
+  "faqs": {
+    "title": "Frequently Asked Questions",
+    "description": "We solve the most common doubts about our air conditioning and zoning systems",
+    "not_found": "Can't find the answer you're looking for?",
+    "contact_us": "Contact Us",
+    "q1": "What is air conditioning zoning?",
+    "a1": "Zoning consists of dividing a home or business into different areas, independently controlling the temperature and air flow using motorized grilles and smart thermostats.",
+    "q2": "What are the advantages of installing zoning grilles?",
+    "a2": "They allow for personalized comfort, reduce energy consumption, avoid air conditioning empty areas and help save on the electricity bill.",
+    "q3": "Can zoning be installed in an existing ducted air system?",
+    "a3": "Yes, in most cases a ducted air conditioning system can be adapted by installing motorized grilles and a centralized control system.",
+    "q4": "What modern technologies do zoning systems include?",
+    "a4": "Current systems integrate with home automation, voice assistants, geolocation and time schedules, allowing for greater comfort and efficiency.",
+    "q5": "How much can be saved with a zoning system?",
+    "a5": "Savings vary by use, but an estimated reduction in electricity consumption of between 20% and 40% compared to traditional systems without zoning."
+  },
+  "footer": {
+    "description": "Specialists in integral solutions for air conditioning and ventilation regulation and control. High-quality air diffusion and zoning systems.",
+    "products": "Products",
+    "catalog": "Full Catalog",
+    "company": "Company",
+    "contact": "Contact",
+    "legal": "Legal Notice",
+    "cookies": "Cookies Policy",
+    "rights": "All rights reserved."
+  },
+  "testimonials": {
+    "title": "What our clients say",
+    "description": "Our clients' satisfaction is our best introduction. Discover why they trust us for their most important projects.",
+    "t1": "MYSAIR completely transformed our air conditioning system. Energy efficiency improved by 40%",
+    "t2": "The zoning system they installed is incredible. We control all the air conditioning from an app and have significantly reduced operating costs.",
+    "t3": "Exceptional professionals. From the first contact to the final installation, everything was perfect. I recommend MYSAIR without hesitation.",
+    "based_on": "based on more than 200 reviews"
+  },
+  "about": {
+    "hero": {
+      "title": "Experts in climate regulation and control solutions",
+      "subtitle": "At MYSAir, we are specialists in smart climate solutions. With over 25 years of experience, we combine advanced technology with personalized service to create perfect environments in homes and offices.",
+      "cta_services": "Learn About Our Services",
+      "cta_products": "View Products"
+    },
+    "stats": {
+      "title": "Numbers That Speak for Us",
+      "subtitle": "Our trajectory and commitment are reflected in every project we undertake",
+      "projects": "Completed Projects",
+      "projects_desc": "Successful installations throughout Spain",
+      "years": "Years of Experience",
+      "years_desc": "A long trajectory in the HVAC sector supports us",
+      "satisfaction": "Customer Satisfaction",
+      "satisfaction_desc": "Guaranteed quality in every project",
+      "paises": "Present in more than 5 countries",
+      "paises_desc": "Continuous international expansion"
+    },
+    "history": {
+      "title": "Our History",
+      "subtitle": "A journey of innovation and growth that has made us industry leaders",
+      "m1_title": "MYSAir Foundation",
+      "m1_desc": "We started as a small family business specializing in air conditioning installations.",
+      "m2_title": "National Expansion",
+      "m2_desc": "We expanded our services nationwide and began working with large corporations.",
+      "m3_title": "Technological Innovation",
+      "m3_desc": "We incorporated zoning systems and smart climate solutions.",
+      "m4_title": "Sustainability",
+      "m4_desc": "We launched our eco-efficient product line and renewable energy systems.",
+      "m5_title": "Digital Leadership",
+      "m5_desc": "We implemented AI and IoT in our systems to optimize energy performance."
+    },
+    "values": {
+      "title": "Our Values",
+      "subtitle": "The principles that guide every decision and define us as a company",
+      "v1_title": "Quality and Trust",
+      "v1_desc": "We guarantee top quality in all our products and services, building lasting relationships based on trust.",
+      "v2_title": "Constant Innovation",
+      "v2_desc": "We continuously invest in R&D to offer the most advanced and efficient solutions on the market.",
+      "v3_title": "Customer Commitment",
+      "v3_desc": "Every project is unique. We adapt to the specific needs of each client to exceed their expectations.",
+      "v4_title": "Sustainability",
+      "v4_desc": "We promote eco-efficient solutions that reduce environmental impact and optimize energy consumption."
+    },
+    "team": {
+      "join_title": "Want to Join Our Team?",
+      "join_desc": "We are always looking for exceptional talent to join our mission of creating perfect environments through technological innovation.",
+      "join_cta": "Send your CV",
+      "r1": "General Director",
+      "r1_desc": "Industrial Engineer with over 20 years of experience in the air conditioning sector.",
+      "r2": "Technical Director",
+      "r2_desc": "Specialist in zoning systems and energy efficiency. Leads our R&D department.",
+      "r3": "Head of Installations",
+      "r3_desc": "Certified technician with extensive experience in commercial and industrial installations."
+    }
+  },
+  "contact": {
+    "header": {
+      "title": "Contact Us",
+      "subtitle": "We are here to help you with your climate project. Contact our experts to receive personalized advice."
+    },
+    "info": {
+      "title": "Contact Information",
+      "address_fiscal": "Registered Office",
+      "address_factory": "Factory Address",
+      "phone_title": "Phone",
+      "email_title": "Email",
+      "hours_title": "Customer Service & Warehouse Hours",
+      "hours_desc": "Monday to Friday: 6:30 - 15:00"
+    },
+    "form": {
+      "title": "Send Us a Message",
+      "description": "Fill out the form and we will get back to you as soon as possible.",
+      "name": "Name *",
+      "name_placeholder": "Your full name",
+      "email": "Email *",
+      "email_placeholder": "you@email.com",
+      "phone": "Phone",
+      "phone_placeholder": "+44 000 000 000",
+      "company": "Company",
+      "company_placeholder": "Your company name",
+      "inquiry_type": "Inquiry Type *",
+      "inquiry_placeholder": "Select inquiry type",
+      "inquiry_general": "General Inquiry",
+      "inquiry_quote": "Request a Quote",
+      "inquiry_technical": "Technical Support",
+      "inquiry_partnership": "Partnership",
+      "inquiry_other": "Other",
+      "message": "Message *",
+      "message_placeholder": "Tell us about your project or inquiry...",
+      "attachment": "Attach File",
+      "attachment_click": "Click to select",
+      "attachment_drag": "or drag a file here",
+      "attachment_hint": "Maximum 5MB. Formats: PDF, DOC, DOCX, JPG, PNG, TXT, ZIP, RAR",
+      "privacy_accept": "I have read and accept the",
+      "privacy_link": "privacy policy",
+      "required_fields": "Required fields",
+      "recaptcha_notice": "This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.",
+      "sending": "Sending...",
+      "send": "Send Message",
+      "success_title": "Message Sent!",
+      "success_desc": "Thank you for contacting us. We will get in touch with you within the next 24 hours.",
+      "send_another": "Send Another Message",
+      "error_privacy": "You must accept the privacy policy to continue",
+      "error_generic": "There was an error sending the form. Please try again.",
+      "error_file_size": "The file cannot exceed 5MB"
+    }
+  },
+  "products": {
+    "header": {
+      "title": "Our Products",
+      "subtitle": "Explore our wide range of HVAC and air diffusion solutions"
+    },
+    "filters": {
+      "title": "Filters",
+      "categories": "Categories",
+      "subcategories": "Subcategories",
+      "featured": "Featured Only",
+      "reset": "Clear Filters",
+      "search_placeholder": "Search products...",
+      "all": "All",
+      "cat_vmc": "VMC",
+      "sub_grilles": "Grilles",
+      "sub_diffusers": "Diffusers",
+      "sub_nozzle": "Nozzles and Inlets",
+      "sub_dampers": "Dampers",
+      "sub_plenums": "Plenums",
+      "sub_motor": "Motorized",
+      "sub_central": "Control Units",
+      "sub_gateway": "Gateways",
+      "sub_controls": "Thermostats",
+      "sub_communication": "Communication Modules",
+      "sub_accessories": "Accessories",
+      "sub_unizone": "1zone System",
+      "sub_airkit": "Motorized Plenum",
+      "sub_mskit": "Pre-assembled Panel",
+      "sub_recovery": "Double Flow"
+    },
+    "grid": {
+      "no_results": "No products found with the selected filters.",
+      "view_details": "View Details"
+    },
+    "detail": {
+      "back": "Back to Products",
+      "images": "Images",
+      "model_3d": "3D Model",
+      "featured": "Featured",
+      "reference": "Product Reference",
+      "variant": "Variant",
+      "select_variant": "Select a variant",
+      "dimensions": "Dimensions",
+      "select_dimensions": "Select dimensions",
+      "fixation": "Fixation Type",
+      "select_fixation": "Select fixation type",
+      "insulation": "Insulation",
+      "select_insulation": "Select insulation",
+      "vias": "No. Ways/Lines",
+      "select_vias": "Select number of ways/lines",
+      "communication": "Communication",
+      "select_communication": "Select communication type",
+      "color": "Color",
+      "select_color": "Select a color",
+      "specs": "Technical Specifications",
+      "docs": "Technical Documentation",
+      "download": "Download",
+      "ficha": "Data Sheet",
+      "manual_user": "User Manual",
+      "manual_inst": "Installer Manual",
+      "cad": "CAD",
+      "bim": "BIM",
+      "cat_air": "Air Diffusion",
+      "cat_smart": "Zoning Systems",
+      "cat_air_desc": "Specialized products for air flow distribution and control in HVAC systems.",
+      "cat_smart_desc": "Smart systems for automatic and efficient HVAC control."
+    }
+  },
+  "docs": {
+    "title": "Catalog and Documentation",
+    "subtitle": "Access our technical and commercial documents to obtain detailed information about our products and services.",
+    "view_document": "View Document",
+    "no_docs": "There are no documents available at this time."
+  },
+  "common": {
+    "language": "Language",
+    "spanish": "Spanish",
+    "english": "English",
+    "french": "French",
+    "italian": "Italian"
+  },
+  "software": {
+    "title": "MYSAir Selection Software",
+    "subtitle": "Advanced software solutions for HVAC system control and management",
+    "solver_title": "MYS Solver 2.0",
+    "solver_subtitle": "HVAC installation calculation",
+    "solver_desc": "Professional tool for sizing and calculating HVAC systems",
+    "solver_btn": "Access MYS Solver 2.0",
+    "draw_title": "MYS Draw 2.0",
+    "draw_subtitle": "Duct-based HVAC installation design",
+    "draw_desc": "Professional online software for calculating and designing duct-based HVAC installations. Calculate diffusion, required thermal power, air machine sizing, and much more. Generate a complete PDF report of your installation.",
+    "draw_btn": "Access MYS Draw 2.0",
+    "help_title": "Need help with your installation?",
+    "help_desc": "If you want our technicians to study your installation, please contact us",
+    "help_cta": "Contact us"
+  },
+  "blog": {
+    "title": "Technical Blog",
+    "subtitle": "Specialized articles, success stories, and the latest trends in HVAC and smart systems.",
+    "filters": {
+      "title": "Filters",
+      "categories": "Categories",
+      "search": "Search articles...",
+      "all": "All"
+    },
+    "grid": {
+      "read_more": "Read more",
+      "no_results": "No articles found with the selected filters."
+    },
+    "post": {
+      "back": "Back to Blog",
+      "share": "Share",
+      "home": "Home",
+      "reading_time": "min read",
+      "summary": "Summary",
+      "tags": "Tags",
+      "cta_title": "Need technical advice?",
+      "cta_desc": "Our team of experts is here to help you with your HVAC project.",
+      "cta_btn": "Contact Experts",
+      "index": "Table of contents",
+      "info": "Article information"
+    }
+  }
+}

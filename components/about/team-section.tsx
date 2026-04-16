@@ -1,25 +1,30 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n-context"
 
 export function TeamSection() {
+  const { t } = useI18n()
+
   const team = [
     {
       name: "Carlos Martínez",
-      role: "Director General",
-      description: "Ingeniero Industrial con más de 20 años de experiencia en el sector de climatización.",
+      role: t("about.team.r1"),
+      description: t("about.team.r1_desc"),
       image: "/professional-businessman-portrait.png",
     },
     {
       name: "Ana García",
-      role: "Directora Técnica",
-      description: "Especialista en sistemas de zonas y eficiencia energética. Lidera nuestro departamento de I+D.",
+      role: t("about.team.r2"),
+      description: t("about.team.r2_desc"),
       image: "/professional-businesswoman-portrait.png",
     },
     {
       name: "Miguel Rodríguez",
-      role: "Jefe de Instalaciones",
-      description: "Técnico certificado con amplia experiencia en instalaciones comerciales e industriales.",
+      role: t("about.team.r3"),
+      description: t("about.team.r3_desc"),
       image: "/professional-technician-portrait.png",
     },
   ]
@@ -33,13 +38,12 @@ export function TeamSection() {
 
         <div className="text-center">
           <div className="bg-blue-50 rounded-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">¿Quieres Formar Parte de Nuestro Equipo?</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">{t("about.team.join_title")}</h3>
             <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-              Estamos siempre buscando talento excepcional para unirse a nuestra misión de crear ambientes perfectos a
-              través de la innovación tecnológica.
+              {t("about.team.join_desc")}
             </p>
             <Button asChild size="lg">
-              <Link href="/contacto">Envía tu CV</Link>
+              <Link href="/contacto">{t("about.team.join_cta")}</Link>
             </Button>
           </div>
         </div>

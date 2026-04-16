@@ -12,6 +12,7 @@ import { ProductVideos } from "./product-videos"
 import { STLViewer } from "./stl-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cable as Cube } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 interface DocumentLink {
   name: string
@@ -83,6 +84,7 @@ function normalizeDocuments(
 }
 
 export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
+  const { t } = useI18n()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedColor, setSelectedColor] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("")
@@ -92,24 +94,20 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
   const [selectedLinesVias, setSelectedLinesVias] = useState<string>("")
   const [selectedCommunication, setSelectedCommunication] = useState<string>("")
 
-  const fichaTecnica = normalizeDocuments(product.ficha_tecnica, product.ficha_tecnica_url, "Ficha Técnica")
-  const manualUsuario = normalizeDocuments(product.manual_usuario, product.manual_usuario_url, "Manual de Usuario")
+  const fichaTecnica = normalizeDocuments(product.ficha_tecnica, product.ficha_tecnica_url, t("products.detail.ficha"))
+  const manualUsuario = normalizeDocuments(product.manual_usuario, product.manual_usuario_url, t("products.detail.manual_user"))
   const manualInstalador = normalizeDocuments(
     product.manual_instalador,
     product.manual_instalador_url,
-    "Manual de Instalador",
+    t("products.detail.manual_inst"),
   )
-  const cadFiles = normalizeDocuments(product.cad, product.cad_url, "Archivo CAD")
-  const bimFiles = normalizeDocuments(product.bim, product.bim_url, "Archivo BIM")
+  const cadFiles = normalizeDocuments(product.cad, product.cad_url, t("products.detail.cad"))
+  const bimFiles = normalizeDocuments(product.bim, product.bim_url, t("products.detail.bim"))
 
   const images = Array.isArray(product.image_url) ? product.image_url : [product.image_url].filter(Boolean)
 
   const productReference = useMemo(() => {
     const parts: string[] = []
-
-    console.log("[v0] Building product reference")
-    console.log("[v0] selectedCommunication:", selectedCommunication)
-    console.log("[v0] product.communication_types:", product.communication_types)
 
     if (selectedVariant && product.variants) {
       const variant = product.variants.find((v) => v.name === selectedVariant)
@@ -143,18 +141,10 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
 
     if (selectedCommunication && product.communication_types) {
       const comm = product.communication_types.find((c) => c.name === selectedCommunication)
-      console.log("[v0] Found communication:", comm)
-      console.log("[v0] Communication code:", comm?.name)
       if (comm?.name) {
         parts.push(comm.name)
-        console.log("[v0] Added communication code to parts")
-      } else {
-        console.log("[v0] Communication code is missing or undefined")
       }
     }
-
-    console.log("[v0] Final parts array:", parts)
-    console.log("[v0] Final reference:", parts.length > 0 ? parts.join(" ") : null)
 
     return parts.length > 0 ? parts.join(" ") : null
   }, [
@@ -190,9 +180,9 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
   const getCategoryName = (category: string) => {
     switch (category) {
       case "air_diffusion":
-        return "Difusión de Aire"
+        return t("products.detail.cat_air")
       case "smart_systems":
-        return "Sistemas de zonas"
+        return t("products.detail.cat_smart")
       default:
         return category
     }
@@ -200,11 +190,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
 
   const getSubcategoryName = (subcategory: string) => {
     const names: Record<string, string> = {
-      grilles: "Rejillas",
-      diffusers: "Difusores",
-      dampers: "Compuertas",
-      zoning: "Zonificación",
-      controls: "Controles",
+      grilles: t("products.filters.sub_grilles") || "Rejillas",
+      diffusers: t("products.filters.sub_diffusers") || "Difusores",
+      dampers: t("products.filters.sub_dampers") || "Compuertas",
+      zoning: t("products.filters.sub_zoning") || "Zonificación",
+      controls: t("products.filters.sub_controls") || "Controles",
     }
     return names[subcategory] || subcategory
   }
@@ -218,17 +208,17 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
         <Button variant="ghost" asChild className="mb-4">
           <Link href="/productos">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver a Productos
+            {t("products.detail.back")}
           </Link>
         </Button>
 
         <nav className="text-sm text-gray-600">
           <Link href="/" className="hover:text-blue-600">
-            Inicio
+            {t("nav.home")}
           </Link>
           <span className="mx-2">/</span>
           <Link href="/productos" className="hover:text-blue-600">
-            Productos
+            {t("nav.products")}
           </Link>
           <span className="mx-2">/</span>
           <span className="text-gray-900">{product.name}</span>
@@ -243,11 +233,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="images" className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  Imágenes
+                  {t("products.detail.images")}
                 </TabsTrigger>
                 <TabsTrigger value="3d" className="flex items-center gap-2">
                   <Cube className="h-4 w-4" />
-                  Modelo 3D
+                  {t("products.detail.model_3d")}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="images" className="space-y-4">
@@ -255,13 +245,13 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   {product.is_featured && (
                     <Badge className="absolute top-4 left-4 z-10 bg-blue-600">
                       <Star className="h-3 w-3 mr-1" />
-                      Destacado
+                      {t("products.detail.featured")}
                     </Badge>
                   )}
 
                   <img
                     src={images[currentImageIndex] || "/placeholder.svg?height=500&width=500"}
-                    alt={`${product.name} - Imagen ${currentImageIndex + 1}`}
+                    alt={`${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
                   />
 
@@ -309,7 +299,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
 
                 {images.length > 1 && (
                   <div className="text-center text-sm text-gray-500">
-                    {currentImageIndex + 1} de {images.length}
+                    {currentImageIndex + 1} {t("common.of") || "de"} {images.length}
                   </div>
                 )}
               </TabsContent>
@@ -323,13 +313,13 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                 {product.is_featured && (
                   <Badge className="absolute top-4 left-4 z-10 bg-blue-600">
                     <Star className="h-3 w-3 mr-1" />
-                    Destacado
+                    {t("products.detail.featured")}
                   </Badge>
                 )}
 
                 <img
                   src={images[currentImageIndex] || "/placeholder.svg?height=500&width=500"}
-                  alt={`${product.name} - Imagen ${currentImageIndex + 1}`}
+                  alt={`${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
                   className="w-full h-full object-cover"
                 />
 
@@ -377,7 +367,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
 
               {images.length > 1 && (
                 <div className="text-center text-sm text-gray-500">
-                  {currentImageIndex + 1} de {images.length}
+                  {currentImageIndex + 1} {t("common.of") || "de"} {images.length}
                 </div>
               )}
             </>
@@ -404,11 +394,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Package className="h-4 w-4" />
-                  Variante
+                  {t("products.detail.variant")}
                 </label>
                 <Select value={selectedVariant} onValueChange={setSelectedVariant}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona una variante" />
+                    <SelectValue placeholder={t("products.detail.select_variant")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.variants.map((variant, index) => (
@@ -429,11 +419,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Ruler className="h-4 w-4" />
-                  Dimensiones
+                  {t("products.detail.dimensions")}
                 </label>
                 <Select value={selectedDimension} onValueChange={setSelectedDimension}>
                   <SelectTrigger className="w-full [&>span]:whitespace-normal [&>span]:text-left [&>span]:line-clamp-2">
-                    <SelectValue placeholder="Selecciona las dimensiones" />
+                    <SelectValue placeholder={t("products.detail.select_dimensions")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.dimensions.map((dimension, index) => (
@@ -460,11 +450,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <ScanIcon className="h-4 w-4" />
-                  Tipo Fijación
+                  {t("products.detail.fixation")}
                 </label>
                 <Select value={selectedFixationType} onValueChange={setSelectedFixationType}>
                   <SelectTrigger className="w-full [&>span]:whitespace-normal [&>span]:text-left [&>span]:line-clamp-2">
-                    <SelectValue placeholder="Selecciona el tipo de fijación" />
+                    <SelectValue placeholder={t("products.detail.select_fixation")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.fixation_types.map((fixationType, index) => (
@@ -487,11 +477,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Shield className="h-4 w-4" />
-                  Aislamiento
+                  {t("products.detail.insulation")}
                 </label>
                 <Select value={selectedInsulation} onValueChange={setSelectedInsulation}>
                   <SelectTrigger className="w-full [&>span]:whitespace-normal [&>span]:text-left [&>span]:line-clamp-2">
-                    <SelectValue placeholder="Selecciona el aislamiento" />
+                    <SelectValue placeholder={t("products.detail.select_insulation")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.insulation_types.map((insulation, index) => (
@@ -514,11 +504,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <LucideAlignJustifyIcon className="h-4 w-4" />
-                  Nº Vías/Líneas
+                  {t("products.detail.vias")}
                 </label>
                 <Select value={selectedLinesVias} onValueChange={setSelectedLinesVias}>
                   <SelectTrigger className="w-full [&>span]:whitespace-normal [&>span]:text-left [&>span]:line-clamp-2">
-                    <SelectValue placeholder="Selecciona el número de vías/líneas" />
+                    <SelectValue placeholder={t("products.detail.select_vias")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.lines_vias.map((line, index) => (
@@ -539,11 +529,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Radio className="h-4 w-4" />
-                  Comunicación
+                  {t("products.detail.communication")}
                 </label>
                 <Select value={selectedCommunication} onValueChange={setSelectedCommunication}>
                   <SelectTrigger className="w-full [&>span]:whitespace-normal [&>span]:text-left [&>span]:line-clamp-2">
-                    <SelectValue placeholder="Selecciona el tipo de comunicación" />
+                    <SelectValue placeholder={t("products.detail.select_communication")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.communication_types.map((comm, index) => (
@@ -564,11 +554,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Palette className="h-4 w-4" />
-                  Color
+                  {t("products.detail.color")}
                 </label>
                 <Select value={selectedColor} onValueChange={setSelectedColor}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona un color" />
+                    <SelectValue placeholder={t("products.detail.select_color")} />
                   </SelectTrigger>
                   <SelectContent>
                     {product.colors.map((color, index) => (
@@ -593,7 +583,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Hash className="h-4 w-4 text-blue-600" />
-                  Referencia del Producto
+                  {t("products.detail.reference")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -613,8 +603,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
             <CardContent>
               <p className="text-gray-600">
                 {product.category === "air_diffusion"
-                  ? "Productos especializados en la distribución y control del flujo de aire en sistemas de climatización."
-                  : "Sistemas inteligentes para el control automático y eficiente de la climatización."}
+                  ? t("products.detail.cat_air_desc")
+                  : t("products.detail.cat_smart_desc")}
               </p>
             </CardContent>
           </Card>
@@ -626,7 +616,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
         <div className="mt-12">
           <Card>
             <CardHeader>
-              <CardTitle>Especificaciones Técnicas</CardTitle>
+              <CardTitle>{t("products.detail.specs")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4">
@@ -648,7 +638,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
       <div className="mt-8">
         <Card>
           <CardHeader>
-            <CardTitle>Documentación Técnica</CardTitle>
+            <CardTitle>{t("products.detail.docs")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -658,7 +648,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-blue-600" />
-                      <span className="font-medium">Ficha Técnica</span>
+                      <span className="font-medium">{t("products.detail.ficha")}</span>
                       <Badge variant="secondary" className="ml-2">
                         {fichaTecnica.length}
                       </Badge>
@@ -675,7 +665,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         <Button size="sm" variant="outline" asChild>
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                             <Download className="h-4 w-4 mr-2" />
-                            Descargar
+                            {t("products.detail.download")}
                           </a>
                         </Button>
                       </div>
@@ -690,7 +680,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Download className="h-5 w-5 text-green-600" />
-                      <span className="font-medium">Manual Usuario</span>
+                      <span className="font-medium">{t("products.detail.manual_user")}</span>
                       <Badge variant="secondary" className="ml-2">
                         {manualUsuario.length}
                       </Badge>
@@ -707,7 +697,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         <Button size="sm" variant="outline" asChild>
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                             <Download className="h-4 w-4 mr-2" />
-                            Descargar
+                            {t("products.detail.download")}
                           </a>
                         </Button>
                       </div>
@@ -722,7 +712,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Wrench className="h-5 w-5 text-orange-600" />
-                      <span className="font-medium">Manual Instalador</span>
+                      <span className="font-medium">{t("products.detail.manual_inst")}</span>
                       <Badge variant="secondary" className="ml-2">
                         {manualInstalador.length}
                       </Badge>
@@ -739,7 +729,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         <Button size="sm" variant="outline" asChild>
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                             <Download className="h-4 w-4 mr-2" />
-                            Descargar
+                            {t("products.detail.download")}
                           </a>
                         </Button>
                       </div>
@@ -754,7 +744,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Box className="h-5 w-5 text-purple-600" />
-                      <span className="font-medium">CAD</span>
+                      <span className="font-medium">{t("products.detail.cad")}</span>
                       <Badge variant="secondary" className="ml-2">
                         {cadFiles.length}
                       </Badge>
@@ -771,7 +761,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         <Button size="sm" variant="outline" asChild>
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                             <Download className="h-4 w-4 mr-2" />
-                            Descargar
+                            {t("products.detail.download")}
                           </a>
                         </Button>
                       </div>
@@ -786,7 +776,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Building className="h-5 w-5 text-indigo-600" />
-                      <span className="font-medium">BIM</span>
+                      <span className="font-medium">{t("products.detail.bim")}</span>
                       <Badge variant="secondary" className="ml-2">
                         {bimFiles.length}
                       </Badge>
@@ -803,7 +793,7 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         <Button size="sm" variant="outline" asChild>
                           <a href={doc.url} target="_blank" rel="noopener noreferrer" download>
                             <Download className="h-4 w-4 mr-2" />
-                            Descargar
+                            {t("products.detail.download")}
                           </a>
                         </Button>
                       </div>

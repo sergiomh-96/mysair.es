@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Send, CheckCircle, Paperclip, X, Upload } from "lucide-react"
 import { submitContactForm } from "@/lib/actions/contact"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n-context"
 
 declare global {
   interface Window {
@@ -21,6 +22,7 @@ declare global {
 }
 
 export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: string }) {
+  const { t } = useI18n()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -33,9 +35,8 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
 
   useEffect(() => {
     // Only load reCAPTCHA if a valid site key is configured
-    const isValidSiteKey = recaptchaSiteKey &&
-      recaptchaSiteKey.length > 30 &&
-      /^[A-Za-z0-9_-]+$/.test(recaptchaSiteKey)
+    const isValidSiteKey =
+      recaptchaSiteKey && recaptchaSiteKey.length > 30 && /^[A-Za-z0-9_-]+$/.test(recaptchaSiteKey)
 
     if (isValidSiteKey) {
       const script = document.createElement("script")
@@ -51,12 +52,12 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
         }
       }
     }
-  }, [])
+  }, [recaptchaSiteKey])
 
   const validateFile = (file: File) => {
     const maxSize = 5 * 1024 * 1024 // 5MB
     if (file.size > maxSize) {
-      setFileError("El archivo no puede superar los 5MB")
+      setFileError(t("contact.form.error_file_size"))
       return false
     }
     setFileError("")
@@ -121,7 +122,7 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
     setFormError("")
 
     if (!acceptedPrivacy) {
-      setFormError("Debes aceptar la política de privacidad para continuar")
+      setFormError(t("contact.form.error_privacy"))
       return
     }
 
@@ -149,7 +150,7 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
       setAcceptedPrivacy(false)
     } catch (error) {
       console.error("Error submitting form:", error)
-      setFormError("Hubo un error al enviar el formulario. Por favor, inténtalo de nuevo.")
+      setFormError(t("contact.form.error_generic"))
     } finally {
       setIsSubmitting(false)
     }
@@ -160,12 +161,10 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
       <Card>
         <CardContent className="p-8 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">¡Mensaje Enviado!</h3>
-          <p className="text-gray-600 mb-4">
-            Gracias por contactarnos. Nos pondremos en contacto contigo en las próximas 24 horas.
-          </p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">{t("contact.form.success_title")}</h3>
+          <p className="text-gray-600 mb-4">{t("contact.form.success_desc")}</p>
           <Button variant="outline" onClick={() => setIsSubmitted(false)}>
-            Enviar Otro Mensaje
+            {t("contact.form.send_another")}
           </Button>
         </CardContent>
       </Card>
@@ -175,62 +174,62 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Envíanos un Mensaje</CardTitle>
-        <CardDescription>Completa el formulario y nos pondremos en contacto contigo lo antes posible.</CardDescription>
+        <CardTitle>{t("contact.form.title")}</CardTitle>
+        <CardDescription>{t("contact.form.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre *</Label>
-              <Input id="name" name="name" required placeholder="Tu nombre completo" />
+              <Label htmlFor="name">{t("contact.form.name")}</Label>
+              <Input id="name" name="name" required placeholder={t("contact.form.name_placeholder")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
+              <Label htmlFor="email">{t("contact.form.email")}</Label>
+              <Input id="email" name="email" type="email" required placeholder={t("contact.form.email_placeholder")} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input id="phone" name="phone" type="tel" placeholder="+34 600 000 000" />
+              <Label htmlFor="phone">{t("contact.form.phone")}</Label>
+              <Input id="phone" name="phone" type="tel" placeholder={t("contact.form.phone_placeholder")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company">Empresa</Label>
-              <Input id="company" name="company" placeholder="Nombre de tu empresa" />
+              <Label htmlFor="company">{t("contact.form.company")}</Label>
+              <Input id="company" name="company" placeholder={t("contact.form.company_placeholder")} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="inquiry_type">Tipo de Consulta *</Label>
+            <Label htmlFor="inquiry_type">{t("contact.form.inquiry_type")}</Label>
             <Select name="inquiry_type" required>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona el tipo de consulta" />
+                <SelectValue placeholder={t("contact.form.inquiry_placeholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="general">Consulta General</SelectItem>
-                <SelectItem value="quote">Solicitar Presupuesto</SelectItem>
-                <SelectItem value="technical">Soporte Técnico</SelectItem>
-                <SelectItem value="partnership">Colaboración</SelectItem>
-                <SelectItem value="other">Otro</SelectItem>
+                <SelectItem value="general">{t("contact.form.inquiry_general")}</SelectItem>
+                <SelectItem value="quote">{t("contact.form.inquiry_quote")}</SelectItem>
+                <SelectItem value="technical">{t("contact.form.inquiry_technical")}</SelectItem>
+                <SelectItem value="partnership">{t("contact.form.inquiry_partnership")}</SelectItem>
+                <SelectItem value="other">{t("contact.form.inquiry_other")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="message">Mensaje *</Label>
+            <Label htmlFor="message">{t("contact.form.message")}</Label>
             <Textarea
               id="message"
               name="message"
               required
               rows={5}
-              placeholder="Cuéntanos sobre tu proyecto o consulta..."
+              placeholder={t("contact.form.message_placeholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="attachment">Adjuntar Archivo</Label>
+            <Label htmlFor="attachment">{t("contact.form.attachment")}</Label>
             <div className="space-y-2">
               <div
                 className={`relative border-2 border-dashed rounded-lg p-6 transition-colors ${
@@ -251,10 +250,10 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
                 <div className="text-center">
                   <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600 mb-1">
-                    <span className="font-medium text-blue-600">Haz clic para seleccionar</span> o arrastra un archivo
-                    aquí
+                    <span className="font-medium text-blue-600">{t("contact.form.attachment_click")}</span>{" "}
+                    {t("contact.form.attachment_drag")}
                   </p>
-                  <p className="text-xs text-gray-500">Máximo 5MB. Formatos: PDF, DOC, DOCX, JPG, PNG, TXT, ZIP, RAR</p>
+                  <p className="text-xs text-gray-500">{t("contact.form.attachment_hint")}</p>
                 </div>
               </div>
 
@@ -275,41 +274,24 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
 
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <Checkbox id="privacy" checked={acceptedPrivacy} onCheckedChange={(checked) => setAcceptedPrivacy(checked as boolean)} className="mt-1" />
+              <Checkbox
+                id="privacy"
+                checked={acceptedPrivacy}
+                onCheckedChange={(checked) => setAcceptedPrivacy(checked as boolean)}
+                className="mt-1"
+              />
               <Label htmlFor="privacy" className="text-sm leading-relaxed cursor-pointer">
-                He leído y acepto la{" "}
+                {t("contact.form.privacy_accept")}{" "}
                 <Link href="/politica-cookies" className="text-blue-600 hover:underline" target="_blank">
-                  política de privacidad
+                  {t("contact.form.privacy_link")}
                 </Link>{" "}
                 *
               </Label>
             </div>
 
             <div className="text-sm text-gray-500">
-              <p>* Campos obligatorios</p>
-              {recaptchaLoaded && (
-                <p className="text-xs mt-1">
-                  Este sitio está protegido por reCAPTCHA y se aplican la{" "}
-                  <a
-                    href="https://policies.google.com/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Política de privacidad
-                  </a>{" "}
-                  y los{" "}
-                  <a
-                    href="https://policies.google.com/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Términos de servicio
-                  </a>{" "}
-                  de Google.
-                </p>
-              )}
+              <p>* {t("contact.form.required_fields")}</p>
+              {recaptchaLoaded && <p className="text-xs mt-1">{t("contact.form.recaptcha_notice")}</p>}
             </div>
           </div>
 
@@ -317,11 +299,11 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
 
           <Button type="submit" className="w-full" disabled={isSubmitting || !acceptedPrivacy}>
             {isSubmitting ? (
-              "Enviando..."
+              t("contact.form.sending")
             ) : (
               <>
                 <Send className="h-4 w-4 mr-2" />
-                Enviar Mensaje
+                {t("contact.form.send")}
               </>
             )}
           </Button>

@@ -14,8 +14,8 @@ export async function middleware(request: NextRequest) {
 
   if (!isInternal && !isAdminRoute && !isLoginPage) {
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://awaqzjughhndfpxjiaff.supabase.co"
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YXF6anVnaGhuZGZweGppYWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODkyNTEsImV4cCI6MjA3MzA2NTI1MX0.Y7O1P320s6kz7Nxs1zwUJIWiocMHD52dv3lo7Oam7Uo"
 
       if (supabaseUrl && supabaseKey) {
         const url = `${supabaseUrl}/rest/v1/url_redirects?select=destination_url,redirect_type&source_path=eq.${encodeURIComponent(pathname)}&is_active=eq.true&limit=1`

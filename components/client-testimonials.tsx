@@ -1,23 +1,28 @@
+"use client"
+
 import { Star, Quote } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 export function ClientTestimonials() {
+  const { t } = useI18n()
+
   const testimonials = [
     {
       name: "Carlos Martínez",
       company: "Residencial Norte",
-      text: "MYSAIR transformó completamente nuestro sistema de climatización. La eficiencia energética mejoró un 40%",
+      text: t("testimonials.t1"),
       rating: 5,
     },
     {
       name: "Ana García",
       company: "Oficinas Central Plaza",
-      text: "El sistema de zonas que instalaron es increíble. Controlamos toda la climatización desde una app y hemos reducido significativamente los costos operativos.",
+      text: t("testimonials.t2"),
       rating: 5,
     },
     {
       name: "Miguel Rodríguez",
       company: "Residencial Las Flores",
-      text: "Profesionales excepcionales. Desde el primer contacto hasta la instalación final, todo fue perfecto. Recomiendo MYSAIR sin dudarlo.",
+      text: t("testimonials.t3"),
       rating: 5,
     },
   ]
@@ -26,10 +31,9 @@ export function ClientTestimonials() {
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Lo que dicen nuestros clientes</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            La satisfacción de nuestros clientes es nuestra mejor carta de presentación. Descubre por qué confían en
-            nosotros para sus proyectos más importantes.
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t("testimonials.title")}</h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto text-pretty">
+            {t("testimonials.description")}
           </p>
         </div>
 
@@ -44,7 +48,7 @@ export function ClientTestimonials() {
                 ))}
               </div>
 
-              <p className="text-gray-700 mb-6 italic">"{testimonial.text}"</p>
+              <p className="text-gray-700 mb-6 italic text-pretty">"{testimonial.text}"</p>
 
               <div className="border-t pt-4">
                 <p className="font-semibold text-gray-900">{testimonial.name}</p>
@@ -62,7 +66,7 @@ export function ClientTestimonials() {
               ))}
             </div>
             <span className="text-lg font-semibold">4.9/5</span>
-            <span>basado en más de 200 reseñas</span>
+            <span>{t("testimonials.based_on")}</span>
           </div>
         </div>
       </div>

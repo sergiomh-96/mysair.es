@@ -1,31 +1,36 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Building2, Users, Award, Wrench } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 export function StatsSection() {
+  const { t } = useI18n()
+
   const stats = [
     {
       icon: Building2,
       number: "500+",
-      label: "Proyectos Completados",
-      description: "Instalaciones exitosas en toda España",
+      label: t("about.stats.projects"),
+      description: t("about.stats.projects_desc"),
     },
     {
       icon: Users,
       number: "25+",
-      label: "Años de Experiencia",
-      description: "Una larga trayectoria en el sector hvac nos avala",
+      label: t("about.stats.years"),
+      description: t("about.stats.years_desc"),
     },
     {
       icon: Award,
       number: "98%",
-      label: "Satisfacción del Cliente",
-      description: "Calidad garantizada en cada proyecto",
+      label: t("about.stats.satisfaction"),
+      description: t("about.stats.satisfaction_desc"),
     },
     {
       icon: Wrench,
       number: "5+",
-      label: "Presentes en más de 5 paises",
-      description: "Expansión internacional continua",
+      label: t("about.stats.paises"),
+      description: t("about.stats.paises_desc"),
     },
   ]
 
@@ -33,9 +38,9 @@ export function StatsSection() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Números que Hablan por Nosotros</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t("about.stats.title")}</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Nuestra trayectoria y compromiso se reflejan en cada proyecto que realizamos
+            {t("about.stats.subtitle")}
           </p>
         </div>
 

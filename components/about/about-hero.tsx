@@ -1,24 +1,29 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n-context"
 
 export function AboutHero() {
+  const { t } = useI18n()
+
   return (
     <section className="bg-gradient-to-br from-blue-50 to-white py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 text-balance">
-              Expertos en soluciones de regulación y control del clima        
+              {t("about.hero.title")}
             </h1>
             <p className="text-xl text-gray-600 mb-8 text-pretty">
-              En MYSAir somos especialistas en soluciones de climatización inteligente. Con más de 25 años de experiencia, combinamos tecnología avanzada con un servicio personalizado para crear ambientes perfectos en hogares y oficinas.
+              {t("about.hero.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg">
-                <Link href="/contacto">Conoce Nuestros Servicios</Link>
+                <Link href="/contacto">{t("about.hero.cta_services")}</Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link href="/productos">Ver Productos</Link>
+                <Link href="/productos">{t("about.hero.cta_products")}</Link>
               </Button>
             </div>
           </div>

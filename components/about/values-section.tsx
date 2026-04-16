@@ -1,31 +1,32 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Shield, Lightbulb, Heart, Leaf } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 export function ValuesSection() {
+  const { t } = useI18n()
+
   const values = [
     {
       icon: Shield,
-      title: "Calidad y Confianza",
-      description:
-        "Garantizamos la máxima calidad en todos nuestros productos y servicios, construyendo relaciones duraderas basadas en la confianza.",
+      title: t("about.values.v1_title"),
+      description: t("about.values.v1_desc"),
     },
     {
       icon: Lightbulb,
-      title: "Innovación Constante",
-      description:
-        "Invertimos continuamente en I+D para ofrecer las soluciones más avanzadas y eficientes del mercado.",
+      title: t("about.values.v2_title"),
+      description: t("about.values.v2_desc"),
     },
     {
       icon: Heart,
-      title: "Compromiso con el Cliente",
-      description:
-        "Cada proyecto es único. Nos adaptamos a las necesidades específicas de cada cliente para superar sus expectativas.",
+      title: t("about.values.v3_title"),
+      description: t("about.values.v3_desc"),
     },
     {
       icon: Leaf,
-      title: "Sostenibilidad",
-      description:
-        "Promovemos soluciones eco-eficientes que reducen el impacto ambiental y optimizan el consumo energético.",
+      title: t("about.values.v4_title"),
+      description: t("about.values.v4_desc"),
     },
   ]
 
@@ -33,9 +34,9 @@ export function ValuesSection() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Nuestros Valores</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t("about.values.title")}</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Los principios que guían cada decisión y nos definen como empresa
+            {t("about.values.subtitle")}
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, User, Share2, Clock, BookOpen } from "lucide-react"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n-context"
 
 interface Section {
   id: string
@@ -44,15 +45,8 @@ function slugify(text: string) {
     .replace(/(^-|-$)/g, "")
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("es-ES", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-}
-
 export function BlogPostDetail({ post }: BlogPostDetailProps) {
+  const { t, locale } = useI18n()
   const sections: Section[] = post.sections ?? []
 
   // Normalize: accept both "type" and "level" field
@@ -65,6 +59,20 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
   const displayDate = post.published_at ?? post.created_at
   const backHref = post.route_type === "blog" ? "/blog" : "/blogs"
 
+  const formatDate = (dateString: string) => {
+    const localeMap: Record<string, string> = {
+      es: "es-ES",
+      en: "en-GB",
+      fr: "fr-FR",
+      it: "it-IT",
+    }
+    return new Date(dateString).toLocaleDateString(localeMap[locale] || "es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header bar */}
@@ -73,7 +81,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
           <Button variant="ghost" size="sm" asChild>
             <Link href={backHref}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Blog
+              {t("blog.post.back")}
             </Link>
           </Button>
           <Button
@@ -87,7 +95,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
             }}
           >
             <Share2 className="h-4 w-4 mr-2" />
-            Compartir
+            {t("blog.post.share")}
           </Button>
         </div>
       </div>
@@ -95,7 +103,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-400 mb-6 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-blue-600 transition-colors">Inicio</Link>
+          <Link href="/" className="hover:text-blue-600 transition-colors">{t("blog.post.home")}</Link>
           <span>/</span>
           <Link href={backHref} className="hover:text-blue-600 transition-colors">Blog</Link>
           <span>/</span>
@@ -139,7 +147,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
               {post.reading_time && (
                 <div className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4" />
-                  <span>{post.reading_time} min de lectura</span>
+                  <span>{post.reading_time} {t("blog.post.reading_time")}</span>
                 </div>
               )}
             </div>
@@ -198,7 +206,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-10">
                 <div className="flex items-center gap-2 mb-3">
                   <BookOpen className="h-5 w-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Resumen</h3>
+                  <h3 className="font-semibold text-blue-900">{t("blog.post.summary")}</h3>
                 </div>
                 <p className="text-blue-800 leading-relaxed text-sm">{post.summary}</p>
               </div>
@@ -207,7 +215,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
             {/* Tags */}
             {post.tags?.length > 0 && (
               <div className="border-t border-gray-100 pt-6 mb-10">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Etiquetas</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{t("blog.post.tags")}</p>
                 <div className="flex flex-wrap gap-2">
                   {post.tags.map((tag) => (
                     <span key={tag} className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-full hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-default">
@@ -220,12 +228,12 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
 
             {/* CTA */}
             <div className="bg-gradient-to-br from-[#1a3a5c] to-[#009ee0] rounded-xl p-8 text-center text-white">
-              <h3 className="text-xl font-bold mb-2">¿Necesitas asesoramiento técnico?</h3>
+              <h3 className="text-xl font-bold mb-2">{t("blog.post.cta_title")}</h3>
               <p className="text-blue-100 mb-5 text-sm">
-                Nuestro equipo de expertos está aquí para ayudarte con tu proyecto de climatización.
+                {t("blog.post.cta_desc")}
               </p>
               <Button asChild variant="secondary">
-                <Link href="/contacto">Contactar con Expertos</Link>
+                <Link href="/contacto">{t("blog.post.cta_btn")}</Link>
               </Button>
             </div>
           </main>
@@ -237,7 +245,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
               {h2Sections.length > 0 && (
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
-                    Índice de contenidos
+                    {t("blog.post.index")}
                   </p>
                   <ol className="space-y-2">
                     {h2Sections.map((section, index) => (
@@ -260,7 +268,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
               {/* Article info card */}
               <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-3 text-sm">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                  Información del artículo
+                  {t("blog.post.info")}
                 </p>
                 <div className="flex items-center gap-2 text-gray-600">
                   <User className="h-4 w-4 text-gray-400 shrink-0" />
@@ -273,7 +281,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
                 {post.reading_time && (
                   <div className="flex items-center gap-2 text-gray-600">
                     <Clock className="h-4 w-4 text-gray-400 shrink-0" />
-                    <span>{post.reading_time} min de lectura</span>
+                    <span>{post.reading_time} {t("blog.post.reading_time")}</span>
                   </div>
                 )}
                 {post.category && (
@@ -292,7 +300,7 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
         {h2Sections.length > 0 && (
           <div className="lg:hidden mt-6 bg-gray-50 rounded-xl p-5 border border-gray-100 order-first">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-              Índice de contenidos
+              {t("blog.post.index")}
             </p>
             <ol className="space-y-2">
               {h2Sections.map((section, index) => (

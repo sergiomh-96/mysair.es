@@ -3,36 +3,34 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
-const faqs = [
-  {
-    question: "¿Qué es la zonificación en climatización?",
-    answer:
-      "La zonificación consiste en dividir una vivienda o negocio en diferentes áreas, controlando de forma independiente la temperatura y el caudal de aire mediante rejillas motorizadas y termostatos inteligentes.",
-  },
-  {
-    question: "¿Qué ventajas tiene instalar rejillas de zonificación?",
-    answer:
-      "Permiten un confort personalizado, reducen el consumo energético, evitan climatizar zonas vacías y ayudan a ahorrar en la factura eléctrica.",
-  },
-  {
-    question: "¿Se puede instalar zonificación en un sistema de aire por conductos ya existente?",
-    answer:
-      "Sí, en la mayoría de los casos se puede adaptar un sistema de aire acondicionado por conductos mediante la instalación de rejillas motorizadas y un sistema de control centralizado.",
-  },
-  {
-    question: "¿Qué tecnologías modernas incluyen los sistemas de zonificación?",
-    answer:
-      "Los sistemas actuales se integran con domótica, asistentes de voz, geolocalización y programaciones horarias, lo que permite mayor comodidad y eficiencia.",
-  },
-  {
-    question: "¿Cuánto se puede ahorrar con un sistema de zonificación?",
-    answer:
-      "El ahorro varía según el uso, pero se estima una reducción en el consumo eléctrico de entre un 20% y un 40% respecto a sistemas tradicionales sin zonificación.",
-  },
-]
+import { useI18n } from "@/lib/i18n-context"
 
 export function FaqsSection() {
+  const { t } = useI18n()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+  const faqs = [
+    {
+      question: t("faqs.q1"),
+      answer: t("faqs.a1"),
+    },
+    {
+      question: t("faqs.q2"),
+      answer: t("faqs.a2"),
+    },
+    {
+      question: t("faqs.q3"),
+      answer: t("faqs.a3"),
+    },
+    {
+      question: t("faqs.q4"),
+      answer: t("faqs.a4"),
+    },
+    {
+      question: t("faqs.q5"),
+      answer: t("faqs.a5"),
+    },
+  ]
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
@@ -42,9 +40,9 @@ export function FaqsSection() {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Preguntas Frecuentes</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t("faqs.title")}</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Resolvemos las dudas más comunes sobre nuestros sistemas de climatización y zonificación
+            {t("faqs.description")}
           </p>
         </div>
 
@@ -77,12 +75,12 @@ export function FaqsSection() {
         </div>
 
         <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">¿No encuentras la respuesta que buscas?</p>
+          <p className="text-gray-600 mb-4">{t("faqs.not_found")}</p>
           <a
             href="/contacto"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Contáctanos
+            {t("faqs.contact_us")}
           </a>
         </div>
       </div>

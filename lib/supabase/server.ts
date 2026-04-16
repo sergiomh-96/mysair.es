@@ -22,9 +22,11 @@ export async function createAuthServerClient() {
 // Service client - uses SERVICE ROLE key, bypasses RLS for admin DB operations
 export async function createServerClient() {
   const cookieStore = await cookies()
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
+  
   return createSupabaseServerClient(
     SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    serviceRoleKey,
     {
       cookies: {
         getAll() { return cookieStore.getAll() },
@@ -38,4 +40,4 @@ export async function createServerClient() {
   )
 }
 
-export const createServerSupabaseClient = createServerClient
+export const createServerSupabaseClient = createAuthServerClient

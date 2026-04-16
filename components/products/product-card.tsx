@@ -1,7 +1,10 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Wind, Settings, Star } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 interface Product {
   id: number
@@ -22,6 +25,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { t } = useI18n()
+
   const getFirstImage = (imageUrl: string | string[]) => {
     if (Array.isArray(imageUrl)) {
       return imageUrl[0] || "/placeholder.svg?height=200&width=300"
@@ -43,11 +48,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const getCategoryName = (category: string) => {
     switch (category) {
       case "air_diffusion":
-        return "Difusión de Aire"
+        return t("products.detail.cat_air")
       case "smart_systems":
-        return "Sistemas de zonas"
+        return t("products.detail.cat_smart")
       case "vmc":
-        return "VMC"
+        return t("products.filters.cat_vmc")
       default:
         return category
     }
@@ -55,19 +60,19 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const getSubcategoryName = (subcategory: string) => {
     const names: Record<string, string> = {
-      grilles: "Rejillas",
-      diffusers: "Difusores",
-      dampers: "Compuertas",
-      nozzle: "Toberas y bocas",
-      plenums: "Plenums",
-      motor: "Motorizadas",
-      central: "Centralitas",
-      gateway: "Pasarelas",
-      controls: "Termostatos",
-      comunication: "Módulos de Comunicación",
-      unizone: "Sistema 1zona",
-      accesories: "Accesorios",
-      recovery: "Doble Flujo",
+      grilles: t("products.filters.sub_grilles"),
+      diffusers: t("products.filters.sub_diffusers"),
+      dampers: t("products.filters.sub_dampers"),
+      nozzle: t("products.filters.sub_nozzle"),
+      plenums: t("products.filters.sub_plenums"),
+      motor: t("products.filters.sub_motor"),
+      central: t("products.filters.sub_central"),
+      gateway: t("products.filters.sub_gateway"),
+      controls: t("products.filters.sub_controls"),
+      comunication: t("products.filters.sub_communication"),
+      unizone: t("products.filters.sub_unizone"),
+      accessories: t("products.filters.sub_accessories"),
+      recovery: t("products.filters.sub_recovery"),
     }
     return names[subcategory] || subcategory
   }
@@ -96,7 +101,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {product.is_featured && (
           <Badge className="absolute top-2 left-2 z-10 bg-blue-600 text-xs">
             <Star className="h-2 w-2 mr-1" />
-            Novedad
+            {t("products.detail.featured")}
           </Badge>
         )}
         <div className="w-48 h-48 bg-gray-100 overflow-hidden mx-auto">

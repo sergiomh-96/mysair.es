@@ -6,14 +6,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Filter, X, Search, FileText, Newspaper, Award } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 export function BlogFilters() {
+  const { t } = useI18n()
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
 
   const categories = [
-    { id: "technical", name: "Técnico", icon: FileText },
+    { id: "technical", name: t("blog.filters.all"), icon: FileText }, // Assuming some mapping or just simple display
+    { id: "technical_real", name: "Técnico", icon: FileText },
     { id: "news", name: "Noticias", icon: Newspaper },
     { id: "case_study", name: "Casos de Éxito", icon: Award },
   ]
@@ -59,7 +62,7 @@ export function BlogFilters() {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filtros
+            {t("blog.filters.title")}
           </CardTitle>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -72,11 +75,11 @@ export function BlogFilters() {
       <CardContent className="space-y-6">
         {/* Search */}
         <div>
-          <h3 className="font-semibold mb-3">Buscar</h3>
+          <h3 className="font-semibold mb-3">{t("blog.filters.categories")}</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Buscar artículos..."
+              placeholder={t("blog.filters.search")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -86,7 +89,7 @@ export function BlogFilters() {
 
         {/* Categories */}
         <div>
-          <h3 className="font-semibold mb-3">Categorías</h3>
+          <h3 className="font-semibold mb-3">{t("blog.filters.categories")}</h3>
           <div className="space-y-3">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">

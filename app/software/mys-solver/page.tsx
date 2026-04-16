@@ -15,7 +15,7 @@ import { CalendarIcon, Plus, Trash2, ExternalLink, FileText } from "lucide-react
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useState, useEffect } from "react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 
@@ -344,10 +344,7 @@ export default function MySolverPage() {
     if (areaEfectiva <= 0) return []
 
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      )
+      const supabase = createBrowserSupabaseClient()
 
       const { data, error } = await supabase
         .from("diffusers")

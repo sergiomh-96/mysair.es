@@ -1,0 +1,389 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "products": "Produits",
+    "products_diffusion": "Diffusion d'Air",
+    "products_zones": "Systèmes de Zones",
+    "products_vmc": "VMC",
+    "documentation": "Documentation",
+    "software": "Logiciel",
+    "blogs": "Blogs",
+    "about": "À Propos",
+    "contact": "Contact",
+    "client_area": "Espace Client"
+  },
+  "hero": {
+    "title": "Solutions de régulation et de contrôle pour la climatisation",
+    "description": "Découvrez notre sélection de produits pour le zonage et la diffusion de l'air dans les installations résidentielles et tertiaires.",
+    "view_products": "Voir les Produits",
+    "efficiency": "Efficacité",
+    "energy_saving": "Économie d'énergie"
+  },
+  "products_preview": {
+    "title": "Les systèmes de zonage permettent de contrôler la température de chaque pièce indépendamment, offrant un confort total et des économies d'énergie importantes",
+    "subtitle": "Découvrez nos produits ->",
+    "view_all": "Voir Tous les Produits",
+    "categories": {
+      "diffusion": {
+        "title": "Diffusion d'Air",
+        "description": "Grilles, registres et diffuseurs de haute qualité pour une distribution d'air optimale.",
+        "p1": "Grilles linéaires",
+        "p2": "Diffuseurs circulaires",
+        "p3": "Registres de régulation"
+      },
+      "zones": {
+        "title": "Systèmes de Zones",
+        "description": "Solutions intelligentes de zonage et contrôle automatique du climat.",
+        "p1": "Zonage intelligent",
+        "p2": "Thermostats numériques",
+        "p3": "Télécommande"
+      },
+      "vmc": {
+        "title": "VMC",
+        "description": "Systèmes de Ventilation Mécanique Contrôlée pour un renouvellement d'air efficace.",
+        "p1": "Récupérateurs de chaleur",
+        "p2": "Systèmes résidentiels",
+        "p3": "Unités de filtration"
+      }
+    }
+  },
+  "regulation_control": {
+    "title": "Solutions de Régulation et de Contrôle MYSAir",
+    "description": "Technologie avancée pour la gestion intelligente de la climatisation. Découvrez nos systèmes conçus pour maximiser l'efficacité et le confort.",
+    "rite": {
+      "title": "Conformité au zonage selon le RITE 178/2021",
+      "description": "Le RITE 2021 met à jour les règles pour le zonage thermique des bâtiments, exigeant que les installations soient conçues par zones thermiques clairement définies. Cela permet de réguler avec précision le chauffage, le refroidissement et la ventilation en fonction des besoins réels de chaque espace, optimisant l'efficacité énergétique et le confort intérieur.",
+      "f1": "Contrôle zoné par pièce",
+      "f2": "Contrôle de l'air et du plancher chauffant",
+      "f3": "Programmation horaire par pièce",
+      "button": "Voir le document justificatif RITE"
+    },
+    "integration": {
+      "title": "Communication et intégration avec les équipements A/C et ventilo-convecteurs",
+      "description": "Gestion unifiée des unités à détente directe et des ventilo-convecteurs des principales marques du marché. Contrôle total de l'unité intérieure depuis le système MYSAir, garantissant un contrôle central unifié.",
+      "f1": "Compatibilité avec les grandes marques",
+      "f2": "Communication par câble ou IR",
+      "f3": "Gestion des modes de fonctionnement et de la température",
+      "button": "Plus d'informations"
+    },
+    "domotics": {
+      "title": "Intégrations domotiques",
+      "description": "Solutions pour l'intégration avec les systèmes d'automatisation et de domotique utilisant les protocoles MODBUS, KNX ou API. Contrôlez votre installation de n'importe où via notre APP MYSAir",
+      "f1": "Modbus RTU, WiFi, 868MHz, API",
+      "f2": "KNX, LOXONE, FIBARO",
+      "f3": "HomeAssistant, AlfredSmart",
+      "button": "Plus d'informations"
+    }
+  },
+  "mobile_app": {
+    "title": "MYSAir App",
+    "description": "Contrôlez votre système de climatisation de n'importe où grâce à notre application mobile intuitive et puissante",
+    "features": {
+      "remote": {
+        "title": "Contrôle à Distance",
+        "description": "Réglez la température, la vitesse et le mode de n'importe où"
+      },
+      "monitoring": {
+        "title": "Surveillance 24/7",
+        "description": "Surveillez l'état et les performances de votre système en temps réel"
+      },
+      "programming": {
+        "title": "Programmation",
+        "description": "Créez des horaires personnalisés pour un maximum de confort et d'efficacité"
+      },
+      "advanced": {
+        "title": "Configuration Avancée",
+        "description": "Personnalisez chaque aspect selon vos préférences spécifiques"
+      }
+    },
+    "available_on": "Disponible sur"
+  },
+  "why_choose": {
+    "title": "Pourquoi choisir MYSAIR ?",
+    "description": "Nous sommes votre partenaire de confiance en climatisation et domotique, offrant des solutions innovantes et un service exceptionnel qui fait la différence.",
+    "reasons": {
+      "experience": {
+        "title": "Plus de 15 ans d'expérience",
+        "description": "Leaders dans le secteur de la climatisation et de la domotique avec un historique d'excellence prouvé."
+      },
+      "quality": {
+        "title": "Qualité garantie",
+        "description": "Des produits certifiés et des services soutenus par les meilleures marques du marché."
+      },
+      "team": {
+        "title": "Équipe spécialisée",
+        "description": "Des techniciens hautement qualifiés et en formation constante pour offrir les meilleures solutions."
+      },
+      "service": {
+        "title": "Service complet",
+        "description": "De la conception à l'installation et à la maintenance, nous couvrons tous vos besoins."
+      }
+    }
+  },
+  "faqs": {
+    "title": "Questions Fréquemment Posées",
+    "description": "Nous répondons aux doutes les plus fréquents sur nos systèmes de climatisation et de zonage",
+    "not_found": "Vous ne trouvez pas la réponse que vous cherchez ?",
+    "contact_us": "Contactez-nous",
+    "q1": "Qu'est-ce que le zonage en climatisation ?",
+    "a1": "Le zonage consiste à diviser une habitation ou un local professionnel en différentes zones, en contrôlant indépendamment la température et le débit d'air à l'aide de grilles motorisées et de thermostats intelligents.",
+    "q2": "Quels sont les avantages de l'installation de grilles de zonage ?",
+    "a2": "Elles permettent un confort personnalisé, réduisent la consommation d'énergie, évitent de climatiser des zones vides et permettent de réduire la facture d'électricité.",
+    "q3": "Peut-on installer un zonage sur un système d'air par gaines existant ?",
+    "a3": "Oui, dans la plupart des cas, un système de climatisation par gaines peut être adapté par l'installation de grilles motorisées et d'un système de contrôle centralisé.",
+    "q4": "Quelles technologies modernes les systèmes de zonage incluent-ils ?",
+    "a4": "Les systèmes actuels s'intègrent à la domotique, aux assistants vocaux, à la géolocalisation et aux programmations horaires, ce qui permet plus de confort et d'efficacité.",
+    "q5": "Combien peut-on économiser avec un système de zonage ?",
+    "a5": "L'économie varie selon l'usage, mais on estime une réduction de la consommation électrique de 20% à 40% par rapport aux systèmes traditionnels sans zonage."
+  },
+  "footer": {
+    "description": "Spécialistes des solutions globales de régulation et de contrôle de la climatisation et de la ventilation. Diffusion d'air et systèmes de zonage de haute qualité.",
+    "products": "Produits",
+    "catalog": "Catalogue Complet",
+    "company": "Entreprise",
+    "contact": "Contact",
+    "legal": "Mentions Légales",
+    "cookies": "Politique de Cookies",
+    "rights": "Tous droits réservés."
+  },
+  "testimonials": {
+    "title": "Ce que disent nos clients",
+    "description": "La satisfaction de nos clients est nuestra meilleure carte de visite. Découvrez pourquoi ils nous font confiance pour leurs projets les plus importants.",
+    "t1": "MYSAIR a complètement transformé notre système de climatisation. L'efficacité énergétique s'est améliorée de 40%",
+    "t2": "Le système de zonage qu'ils ont installé est incroyable. Nous contrôlons toute la climatización depuis une application et avons considérablement réduit les coûts d'exploitation.",
+    "t3": "Des professionnels exceptionnels. Du premier contact à l'installation finale, tout était parfait. Je recommande MYSAIR sans hésitation.",
+    "based_on": "basé sur plus de 200 avis"
+  },
+  "about": {
+    "hero": {
+      "title": "Experts en solutions de régulation et de contrôle du climat",
+      "subtitle": "Chez MYSAir, nous sommes spécialistes des solutions climatiques intelligentes. Avec plus de 25 ans d'expérience, nous combinons technologie de pointe et service personnalisé pour créer des environnements parfaits dans les maisons et les bureaux.",
+      "cta_services": "Découvrez Nos Services",
+      "cta_products": "Voir les Produits"
+    },
+    "stats": {
+      "title": "Des Chiffres qui Parlent pour Nous",
+      "subtitle": "Notre trajectoire et notre engagement se reflètent dans chaque projet que nous réalisons",
+      "projects": "Projets Terminés",
+      "projects_desc": "Installations réussies dans toute l'Espagne",
+      "years": "Années d'Expérience",
+      "years_desc": "Une longue trajectoire dans le secteur HVAC nous soutient",
+      "satisfaction": "Satisfaction Client",
+      "satisfaction_desc": "Qualité garantie dans chaque projet",
+      "paises": "Présent dans plus de 5 pays",
+      "paises_desc": "Expansion internationale continue"
+    },
+    "history": {
+      "title": "Notre Histoire",
+      "subtitle": "Un voyage d'innovation et de croissance qui a fait de nous des leaders de l'industrie",
+      "m1_title": "Fondation de MYSAir",
+      "m1_desc": "Nous avons commencé comme une petite entreprise familiale spécialisée dans les installations de climatisation.",
+      "m2_title": "Expansion Nationale",
+      "m2_desc": "Nous avons étendu nos services à l'échelle nationale et commencé à travailler avec de grandes entreprises.",
+      "m3_title": "Innovation Technologique",
+      "m3_desc": "Nous avons intégré des systèmes de zonage et des solutions climatiques intelligentes.",
+      "m4_title": "Durabilité",
+      "m4_desc": "Nous avons lancé notre gamme de produits éco-efficaces et nos systèmes d'énergie renouvelable.",
+      "m5_title": "Leadership Numérique",
+      "m5_desc": "Nous avons implémenté l'IA et l'IoT dans nos systèmes pour optimiser les performances énergétiques."
+    },
+    "values": {
+      "title": "Nos Valeurs",
+      "subtitle": "Les principes qui guident chaque décision et nous définissent en tant qu'entreprise",
+      "v1_title": "Qualité et Confiance",
+      "v1_desc": "Nous garantissons une qualité supérieure dans tous nos produits et services, en instaurant des relations durables basées sur la confiance.",
+      "v2_title": "Innovation Constante",
+      "v2_desc": "Nous investissons continuellement dans la R&D pour offrir les solutions les plus avancées et les plus efficaces du marché.",
+      "v3_title": "Engagement Client",
+      "v3_desc": "Chaque projet est unique. Nous nous adaptons aux besoins spécifiques de chaque client pour dépasser ses attentes.",
+      "v4_title": "Durabilité",
+      "v4_desc": "Nous promouvons des solutions éco-efficaces qui réduisent l'impact environnemental et optimisent la consommation d'énergie."
+    },
+    "team": {
+      "join_title": "Voulez-vous Rejoindre Notre Équipe ?",
+      "join_desc": "Nous sommes toujours à la recherche de talents exceptionnels pour rejoindre notre mission consistant à créer des environnements parfaits grâce à l'innovation technologique.",
+      "join_cta": "Envoyez votre CV",
+      "r1": "Directeur Général",
+      "r1_desc": "Ingénieur industriel avec plus de 20 ans d'expérience dans le secteur de la climatisation.",
+      "r2": "Directrice Technique",
+      "r2_desc": "Spécialiste des systèmes de zonage et de l'efficacité énergétique. Dirige notre département R&D.",
+      "r3": "Chef des Installations",
+      "r3_desc": "Technicien certifié possédant une vaste expérience dans les installations commerciales et industrielles."
+    }
+  },
+  "contact": {
+    "header": {
+      "title": "Contactez-nous",
+      "subtitle": "Nous sommes là pour vous aider dans votre projet climatique. Contactez nos experts pour recevoir des conseils personnalisés."
+    },
+    "info": {
+      "title": "Coordonnées",
+      "address_fiscal": "Siège Social",
+      "address_factory": "Adresse de l'Usine",
+      "phone_title": "Téléphone",
+      "email_title": "E-mail",
+      "hours_title": "Service Client & Horaires de l'Entrepôt",
+      "hours_desc": "Lundi au Vendredi : 6:30 - 15:00"
+    },
+    "form": {
+      "title": "Envoyez-nous un Message",
+      "description": "Remplissez le formulaire et nous vous répondrons dans les plus brefs délais.",
+      "name": "Nom *",
+      "name_placeholder": "Votre nom complet",
+      "email": "E-mail *",
+      "email_placeholder": "vous@email.com",
+      "phone": "Téléphone",
+      "phone_placeholder": "+33 000 000 000",
+      "company": "Entreprise",
+      "company_placeholder": "Le nom de votre entreprise",
+      "inquiry_type": "Type de demande *",
+      "inquiry_placeholder": "Sélectionnez le type de demande",
+      "inquiry_general": "Demande Générale",
+      "inquiry_quote": "Demander un Devis",
+      "inquiry_technical": "Support Technique",
+      "inquiry_partnership": "Partenariat",
+      "inquiry_other": "Autre",
+      "message": "Message *",
+      "message_placeholder": "Parlez-nous de votre projet ou de votre demande...",
+      "attachment": "Joindre un Fichier",
+      "attachment_click": "Cliquez pour sélectionner",
+      "attachment_drag": "ou faites glisser un fichier ici",
+      "attachment_hint": "Maximum 5 Mo. Formats : PDF, DOC, DOCX, JPG, PNG, TXT, ZIP, RAR",
+      "privacy_accept": "J'ai lu et j'accepte la",
+      "privacy_link": "politique de confidentialité",
+      "required_fields": "Champs obligatoires",
+      "recaptcha_notice": "Ce site est protégé par reCAPTCHA et les règles de confidentialité et les conditions d'utilisation de Google s'appliquent.",
+      "sending": "Envoi en cours...",
+      "send": "Envoyer le Message",
+      "success_title": "Message Envoyé !",
+      "success_desc": "Merci de nous avoir contactés. Nous vous répondrons dans les prochaines 24 heures.",
+      "send_another": "Envoyer un Autre Message",
+      "error_privacy": "Vous devez accepter la politique de confidentialité pour continuer",
+      "error_generic": "Une erreur s'est produite lors de l'envoi du formulaire. Veuillez réessayer.",
+      "error_file_size": "Le fichier ne peut pas dépasser 5 Mo"
+    }
+  },
+  "products": {
+    "header": {
+      "title": "Nos Produits",
+      "subtitle": "Explorez notre large gamme de solutions HVAC et de diffusion d'air"
+    },
+    "filters": {
+      "title": "Filtres",
+      "categories": "Catégories",
+      "subcategories": "Sous-catégories",
+      "featured": "En vedette uniquement",
+      "reset": "Effacer les Filtres",
+      "search_placeholder": "Rechercher des produits...",
+      "all": "Tous",
+      "cat_vmc": "VMC",
+      "sub_grilles": "Grilles",
+      "sub_diffusers": "Diffuseurs",
+      "sub_nozzle": "Buses et Entrées",
+      "sub_dampers": "Registres",
+      "sub_plenums": "Plénums",
+      "sub_motor": "Motorisés",
+      "sub_central": "Unités de Contrôle",
+      "sub_gateway": "Passerelles",
+      "sub_controls": "Thermostats",
+      "sub_communication": "Modules de Communication",
+      "sub_accessories": "Accessoires",
+      "sub_unizone": "Système 1zone",
+      "sub_airkit": "Plénum Motorisé",
+      "sub_mskit": "Panneau Pré-assemblé",
+      "sub_recovery": "Double Flux"
+    },
+    "grid": {
+      "no_results": "Aucun produit trouvé avec les filtres sélectionnés.",
+      "view_details": "Voir les détails"
+    },
+    "detail": {
+      "back": "Retour aux Produits",
+      "images": "Images",
+      "model_3d": "Modèle 3D",
+      "featured": "En vedette",
+      "reference": "Référence du Produit",
+      "variant": "Variante",
+      "select_variant": "Sélectionnez une variante",
+      "dimensions": "Dimensions",
+      "select_dimensions": "Sélectionnez les dimensions",
+      "fixation": "Type de fixation",
+      "select_fixation": "Sélectionnez le type de fixation",
+      "insulation": "Isolation",
+      "select_insulation": "Sélectionnez l'isolation",
+      "vias": "Nb. Voies/Lignes",
+      "select_vias": "Sélectionnez le nombre de voies/lignes",
+      "communication": "Communication",
+      "select_communication": "Sélectionnez le type de communication",
+      "color": "Couleur",
+      "select_color": "Sélectionnez une couleur",
+      "specs": "Spécifications Techniques",
+      "docs": "Documentation Technique",
+      "download": "Télécharger",
+      "ficha": "Fiche Technique",
+      "manual_user": "Manuel de l'utilisateur",
+      "manual_inst": "Manuel de l'installateur",
+      "cad": "CAD",
+      "bim": "BIM",
+      "cat_air": "Diffusion d'Air",
+      "cat_smart": "Systèmes de Zonage",
+      "cat_air_desc": "Produits spécialisés pour la distribution et le contrôle du flux d'air dans les systèmes HVAC.",
+      "cat_smart_desc": "Systèmes intelligents pour un contrôle automatique et efficace de la climatisation."
+    }
+  },
+  "docs": {
+    "title": "Catalogue et Documentation",
+    "subtitle": "Accédez à nos documents techniques et commerciaux pour obtenir des informations détaillées sur nos produits et services.",
+    "view_document": "Voir le Document",
+    "no_docs": "Il n'y a pas de documents disponibles pour le moment."
+  },
+  "common": {
+    "language": "Langue",
+    "spanish": "Espagnol",
+    "english": "Anglais",
+    "french": "Français",
+    "italian": "Italien"
+  },
+  "software": {
+    "title": "Logiciel de sélection MYSAir",
+    "subtitle": "Solutions logicielles avancées pour le contrôle et la gestion des systèmes CVC",
+    "solver_title": "MYS Solver 2.0",
+    "solver_subtitle": "Calcul d'installation CVC",
+    "solver_desc": "Outil professionnel pour le dimensionnement et le calcul des systèmes CVC",
+    "solver_btn": "Accéder à MYS Solver 2.0",
+    "draw_title": "MYS Draw 2.0",
+    "draw_subtitle": "Conception d'installations CVC par conduits",
+    "draw_desc": "Logiciel professionnel en ligne pour le calcul et la conception d'installations CVC par conduits. Calculez la diffusion, la puissance thermique requise, le dimensionnement des machines à air et bien plus encore. Générez un rapport PDF complet de votre installation.",
+    "draw_btn": "Accéder à MYS Draw 2.0",
+    "help_title": "Besoin d'aide pour votre installation ?",
+    "help_desc": "Si vous souhaitez que nuestros techniciens étudient votre installation, veuillez nous contacter",
+    "help_cta": "Nous contacter"
+  },
+  "blog": {
+    "title": "Blog Technique",
+    "subtitle": "Articles spécialisés, histoires de réussite et dernières tendances en matière de CVC et de systèmes intelligents.",
+    "filters": {
+      "title": "Filtres",
+      "categories": "Catégories",
+      "search": "Rechercher des articles...",
+      "all": "Tous"
+    },
+    "grid": {
+      "read_more": "Lire la suite",
+      "no_results": "Aucun article trouvé avec les filtres sélectionnés."
+    },
+    "post": {
+      "back": "Retour au Blog",
+      "share": "Partager",
+      "home": "Accueil",
+      "reading_time": "min de lecture",
+      "summary": "Résumé",
+      "tags": "Étiquettes",
+      "cta_title": "Besoin de conseils techniques ?",
+      "cta_desc": "Notre équipe d'experts est là pour vous aider dans votre projet de climatisation.",
+      "cta_btn": "Contacter les Experts",
+      "index": "Table des matières",
+      "info": "Informations sur l'article"
+    }
+  }
+}

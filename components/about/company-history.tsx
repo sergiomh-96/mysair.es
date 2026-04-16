@@ -1,31 +1,36 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
+import { useI18n } from "@/lib/i18n-context"
 
 export function CompanyHistory() {
+  const { t } = useI18n()
+
   const milestones = [
     {
       year: "1995",
-      title: "Fundación de MYSAir",
-      description: "Iniciamos como una pequeña empresa familiar especializada en instalaciones de aire acondicionado.",
+      title: t("about.history.m1_title"),
+      description: t("about.history.m1_desc"),
     },
     {
       year: "2005",
-      title: "Expansión Nacional",
-      description: "Ampliamos nuestros servicios a nivel nacional y comenzamos a trabajar con grandes corporaciones.",
+      title: t("about.history.m2_title"),
+      description: t("about.history.m2_desc"),
     },
     {
       year: "2015",
-      title: "Innovación Tecnológica",
-      description: "Incorporamos sistemas de zonas y soluciones inteligentes de climatización.",
+      title: t("about.history.m3_title"),
+      description: t("about.history.m3_desc"),
     },
     {
       year: "2020",
-      title: "Sostenibilidad",
-      description: "Lanzamos nuestra línea de productos eco-eficientes y sistemas de energía renovable.",
+      title: t("about.history.m4_title"),
+      description: t("about.history.m4_desc"),
     },
     {
       year: "2024",
-      title: "Liderazgo Digital",
-      description: "Implementamos IA y IoT en nuestros sistemas para optimizar el rendimiento energético.",
+      title: t("about.history.m5_title"),
+      description: t("about.history.m5_desc"),
     },
   ]
 
@@ -33,9 +38,9 @@ export function CompanyHistory() {
     <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Nuestra Historia</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t("about.history.title")}</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Un recorrido de innovación y crecimiento que nos ha convertido en líderes del sector
+            {t("about.history.subtitle")}
           </p>
         </div>
 

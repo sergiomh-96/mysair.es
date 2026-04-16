@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, User, ArrowRight, FileText, Newspaper, Award } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 interface BlogPost {
   id: number
@@ -23,6 +26,8 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ post }: BlogCardProps) {
+  const { t, locale } = useI18n()
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "technical":
@@ -50,7 +55,13 @@ export function BlogCard({ post }: BlogCardProps) {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    const localeMap: Record<string, string> = {
+      es: "es-ES",
+      en: "en-GB",
+      fr: "fr-FR",
+      it: "it-IT",
+    }
+    return new Date(dateString).toLocaleDateString(localeMap[locale] || "es-ES", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -100,7 +111,7 @@ export function BlogCard({ post }: BlogCardProps) {
             ))}
             {post.tags.length > 3 && (
               <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                +{post.tags.length - 3} más
+                +{post.tags.length - 3} {t("products.detail.see_more").toLowerCase()}
               </span>
             )}
           </div>
@@ -120,7 +131,7 @@ export function BlogCard({ post }: BlogCardProps) {
 
             <Button variant="ghost" size="sm" asChild>
               <Link href={postHref}>
-                Leer más
+                {t("blog.grid.read_more")}
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>

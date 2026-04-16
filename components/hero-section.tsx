@@ -5,7 +5,10 @@ import { ArrowRight, Wind, Home, Zap } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 
+import { useI18n } from "@/lib/i18n-context"
+
 export function HeroSection() {
+  const { t } = useI18n()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   const images = ["/chica+rejilla2.png", "/salon+movil.png"]
@@ -25,11 +28,10 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-6xl text-balance font-bold tracking-normal text-left leading-[1] text-foreground opacity-80">
-                Soluciones de regulación y control para climatización
+                {t("hero.title")}
               </h1>
               <p className="text-gray-600 text-pretty tracking-wide text-2xl font-medium leading-9 text-justify">
-                Descubre nuestra selección de productos para zonificación y difusión de aire en instalaciones de
-                residencial y terciario.
+                {t("hero.description")}
               </p>
             </div>
 
@@ -40,8 +42,8 @@ export function HeroSection() {
                   <Wind className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Difusión de Aire</h3>
-                  <p className="text-sm text-gray-600">Rejillas y difusores</p>
+                  <h3 className="font-semibold text-gray-900">{t("nav.products_diffusion")}</h3>
+                  <p className="text-sm text-gray-600">{t("nav.products_diffusion")}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -49,8 +51,8 @@ export function HeroSection() {
                   <Home className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Sistema de zonas </h3>
-                  <p className="text-sm text-gray-600">{"Soluciones de regulación"}</p>
+                  <h3 className="font-semibold text-gray-900">{t("nav.products_zones")}</h3>
+                  <p className="text-sm text-gray-600">{t("common.language")}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -58,8 +60,8 @@ export function HeroSection() {
                   <Zap className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Eficiencia</h3>
-                  <p className="text-sm text-gray-600">Ahorro energético</p>
+                  <h3 className="font-semibold text-gray-900">{t("hero.efficiency")}</h3>
+                  <p className="text-sm text-gray-600">{t("hero.energy_saving")}</p>
                 </div>
               </div>
             </div>
@@ -68,7 +70,7 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" asChild>
                 <Link href="/productos">
-                  Ver Productos
+                  {t("hero.view_products")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

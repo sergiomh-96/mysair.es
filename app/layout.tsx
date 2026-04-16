@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   },
 }
 
+import { I18nProvider } from "@/lib/i18n-context"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +52,9 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        <Suspense fallback={null}>{children}</Suspense>
+        <I18nProvider>
+          <Suspense fallback={null}>{children}</Suspense>
+        </I18nProvider>
         <Analytics />
       </body>
     </html>

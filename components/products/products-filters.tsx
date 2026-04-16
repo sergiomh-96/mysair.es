@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Wind, Settings, Fan, Filter, X } from "lucide-react"
+import { useI18n } from "@/lib/i18n-context"
 
 interface FilterState {
   selectedCategories: string[]
@@ -17,38 +18,35 @@ interface ProductsFiltersProps {
 }
 
 export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersProps) {
+  const { t } = useI18n()
   const { selectedCategories, selectedSubcategories, showFeatured } = filters
 
   const categories = [
-    { id: "air_diffusion", name: "Difusión de Aire", icon: Wind },
-    { id: "smart_systems", name: "Sistemas de zonas", icon: Settings },
-    { id: "vmc", name: "VMC", icon: Fan },
+    { id: "air_diffusion", name: t("products.detail.cat_air"), icon: Wind },
+    { id: "smart_systems", name: t("products.detail.cat_smart"), icon: Settings },
+    { id: "vmc", name: t("products.filters.cat_vmc"), icon: Fan },
   ]
 
   const subcategories = [
-    { id: "grilles", name: "Rejillas", category: "air_diffusion" },
-    { id: "diffusers", name: "Difusores", category: "air_diffusion" },
-    { id: "nozzle", name: "Toberas y bocas", category: "air_diffusion" },
-    { id: "dampers", name: "Compuertas", category: "air_diffusion" },
-    { id: "plenums", name: "Plenums", category: "air_diffusion" },
-    { id: "motor", name: "Motorizadas", category: "air_diffusion" },
-    { id: "accesories", name: "Accesorios", category: "air_diffusion" },
+    { id: "grilles", name: t("products.filters.sub_grilles"), category: "air_diffusion" },
+    { id: "diffusers", name: t("products.filters.sub_diffusers"), category: "air_diffusion" },
+    { id: "nozzle", name: t("products.filters.sub_nozzle"), category: "air_diffusion" },
+    { id: "dampers", name: t("products.filters.sub_dampers"), category: "air_diffusion" },
+    { id: "plenums", name: t("products.filters.sub_plenums"), category: "air_diffusion" },
+    { id: "motor", name: t("products.filters.sub_motor"), category: "air_diffusion" },
+    { id: "accessories", name: t("products.filters.sub_accessories"), category: "air_diffusion" },
 
+    { id: "central", name: t("products.filters.sub_central"), category: "smart_systems" },
+    { id: "gateway", name: t("products.filters.sub_gateway"), category: "smart_systems" },
+    { id: "controls", name: t("products.filters.sub_controls"), category: "smart_systems" },
+    { id: "communication", name: t("products.filters.sub_communication"), category: "smart_systems" },
+    { id: "accessories", name: t("products.filters.sub_accessories"), category: "smart_systems" },
+    { id: "unizone", name: t("products.filters.sub_unizone"), category: "smart_systems" },
+    { id: "airkit", name: t("products.filters.sub_airkit"), category: "smart_systems" },
+    { id: "mskit", name: t("products.filters.sub_mskit"), category: "smart_systems" },
 
-    { id: "central", name: "Centralitas", category: "smart_systems" },
-    { id: "gateway", name: "Pasarelas", category: "smart_systems" },
-    { id: "controls", name: "Termostatos", category: "smart_systems" },
-    { id: "comunication", name: "Módulos de Comunicación", category: "smart_systems" },
-    { id: "accesories", name: "Accesorios", category: "smart_systems" },
-    { id: "unizone", name: "Sistema 1zona", category: "smart_systems" },
-    { id: "airkit", name: "Plenum Motorizado", category: "smart_systems" },
-    { id: "mskit", name: "Cuadro Premontado", category: "smart_systems" },
-
-
-
-
-    { id: "recovery", name: "Doble Flujo", category: "vmc" },
-    { id: "accesories", name: "Accesorios", category: "vmc" },
+    { id: "recovery", name: t("products.filters.sub_recovery"), category: "vmc" },
+    { id: "accessories", name: t("products.filters.sub_accessories"), category: "vmc" },
   ]
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -107,7 +105,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filtros
+            {t("products.filters.title")}
           </CardTitle>
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -120,7 +118,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
       <CardContent className="space-y-6">
         {/* Categories */}
         <div>
-          <h3 className="font-semibold mb-3">Categorías</h3>
+          <h3 className="font-semibold mb-3">{t("products.filters.categories")}</h3>
           <div className="space-y-3">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
@@ -141,7 +139,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
         {/* Subcategories */}
         {selectedCategories.length > 0 && (
           <div>
-            <h3 className="font-semibold mb-3">Subcategorías</h3>
+            <h3 className="font-semibold mb-3">{t("products.filters.subcategories")}</h3>
             <div className="space-y-3">
               {subcategories
                 .filter((sub) => selectedCategories.includes(sub.category))
@@ -166,7 +164,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
           <div className="flex items-center space-x-2">
             <Checkbox id="featured" checked={showFeatured} onCheckedChange={handleFeaturedChange} />
             <label htmlFor="featured" className="text-sm cursor-pointer">
-              Solo últimas novedades  
+              {t("products.filters.featured")}
             </label>
           </div>
         </div>
