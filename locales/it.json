@@ -10,6 +10,7 @@
     "blogs": "Blog",
     "about": "Chi Siamo",
     "contact": "Contatto",
+    "compatibility": "Compatibilità",
     "client_area": "Area Clienti"
   },
   "hero": {
@@ -384,6 +385,30 @@
       "cta_btn": "Contatta gli Esperti",
       "index": "Indice dei contenuti",
       "info": "Informazioni sull'articolo"
+    }
+  },
+  "compatibility": {
+    "title": "Ricerca Compatibilità",
+    "subtitle": "Trova il modulo di comunicazione (Gateway CTOTAL) compatibile con il tuo condizionatore.",
+    "search": {
+      "brand": "Marca",
+      "brand_placeholder": "Seleziona la marca...",
+      "reference": "Riferimento Unità Interna",
+      "reference_placeholder": "Es: MSZ-AP35VG...",
+      "submit": "Verifica Compatibilità",
+      "no_results": "Nessun risultato trovato per la tua attrezzatura. Contattaci per maggiori informazioni.",
+      "searching": "Ricerca in corso..."
+    },
+    "results": {
+      "title": "Risultati di Compatibilità",
+      "gateway": "Modulo Gateway",
+      "connector": "Connettore",
+      "manual": "Manuale di Installazione",
+      "observations": "Osservazioni",
+      "view_manual": "Vedi Manuale",
+      "gateway_image": "Immagine Gateway",
+      "remote_image": "Immagine Telecomando",
+      "details": "Dettagli Tecnici"
     }
   }
 }

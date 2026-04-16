@@ -10,6 +10,7 @@
     "blogs": "Blogs",
     "about": "À Propos",
     "contact": "Contact",
+    "compatibility": "Compatibilité",
     "client_area": "Espace Client"
   },
   "hero": {
@@ -384,6 +385,30 @@
       "cta_btn": "Contacter les Experts",
       "index": "Table des matières",
       "info": "Informations sur l'article"
+    }
+  },
+  "compatibility": {
+    "title": "Moteur de Recherche de Compatibilité",
+    "subtitle": "Trouvez le module de communication (Passerelle CTOTAL) compatible avec votre climatiseur.",
+    "search": {
+      "brand": "Marque",
+      "brand_placeholder": "Sélectionnez la marque...",
+      "reference": "Référence Unité Intérieure",
+      "reference_placeholder": "Ex : MSZ-AP35VG...",
+      "submit": "Vérifier la Compatibilité",
+      "no_results": "Aucun résultat trouvé pour votre équipement. Veuillez nous contacter pour plus d'informations.",
+      "searching": "Recherche..."
+    },
+    "results": {
+      "title": "Résultats de Compatibilité",
+      "gateway": "Module Passerelle",
+      "connector": "Connecteur",
+      "manual": "Manuel d''Installation",
+      "observations": "Observations",
+      "view_manual": "Voir le Manuel",
+      "gateway_image": "Image Passerelle",
+      "remote_image": "Image Télécommande",
+      "details": "Détails Techniques"
     }
   }
 }

@@ -1,0 +1,10 @@
+-- Seed data for air_compatibility table
+INSERT INTO air_compatibility (brand, indoor_unit_ref, gateway_ref, connector, manual_url, observations, gateway_image_url, remote_image_url) VALUES
+('Mitsubishi Electric', 'MSZ-AP35VG', 'CTOTAL-ME1', 'CN105', 'https://mysair.es/manuals/me1.pdf', 'Compatible con la serie MSZ-AP de Mitsubishi Electric.', 'https://mysair.es/images/gateways/ctotal-me1.png', 'https://mysair.es/images/remotes/me-remote-1.png'),
+('Mitsubishi Electric', 'MSZ-HR35VF', 'CTOTAL-ME1', 'CN105', 'https://mysair.es/manuals/me1.pdf', 'Compatible con la serie MSZ-HR (Gama baja) de Mitsubishi Electric.', 'https://mysair.es/images/gateways/ctotal-me1.png', 'https://mysair.es/images/remotes/me-remote-hr.png'),
+('Daikin', 'FTXM35R', 'CTOTAL-DA1', 'S21', 'https://mysair.es/manuals/da1.pdf', 'Compatible con unidades Daikin Perfera.', 'https://mysair.es/images/gateways/ctotal-da1.png', 'https://mysair.es/images/remotes/da-remote-perfera.png'),
+('Daikin', 'FTXP35M', 'CTOTAL-DA1', 'S21', 'https://mysair.es/manuals/da1.pdf', 'Compatible con unidades Daikin Comfora.', 'https://mysair.es/images/gateways/ctotal-da1.png', 'https://mysair.es/images/remotes/da-remote-comfora.png'),
+('Fujitsu', 'ASYG12LMCE', 'CTOTAL-FJ1', 'CN11', 'https://mysair.es/manuals/fj1.pdf', 'Requiere placa de comunicación externa según modelo.', 'https://mysair.es/images/gateways/ctotal-fj1.png', 'https://mysair.es/images/remotes/fj-remote-1.png'),
+('LG', 'PC12SQ', 'CTOTAL-LG1', 'CN-REMO', 'https://mysair.es/manuals/lg1.pdf', 'Compatible con la gama LG Artcool y Privilege.', 'https://mysair.es/images/gateways/ctotal-lg1.png', 'https://mysair.es/images/remotes/lg-remote-1.png'),
+('Samsung', 'AR12TXHQASINEU', 'CTOTAL-SM1', 'F1 F2', 'https://mysair.es/manuals/sm1.pdf', 'Control mediante bus de comunicación original.', 'https://mysair.es/images/gateways/ctotal-sm1.png', 'https://mysair.es/images/remotes/sm-remote-1.png'),
+('Panasonic', 'CS-TZ35WKEW', 'CTOTAL-PN1', 'CN-CNT', 'https://mysair.es/manuals/pn1.pdf', 'Compatible con gama Etherea y TZ.', 'https://mysair.es/images/gateways/ctotal-pn1.png', 'https://mysair.es/images/remotes/pn-remote-1.png');

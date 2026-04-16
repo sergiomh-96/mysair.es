@@ -10,6 +10,7 @@
     "blogs": "Blogs",
     "about": "About Us",
     "contact": "Contact",
+    "compatibility": "Compatibility",
     "client_area": "Client Area"
   },
   "hero": {
@@ -384,6 +385,33 @@
       "cta_btn": "Contact Experts",
       "index": "Table of contents",
       "info": "Article information"
+    }
+  },
+  "compatibility": {
+    "title": "CTOTAL Compatibility Tool",
+    "subtitle": "Identify the correct MYSAir communication gateway for your HVAC system integration.",
+    "search": {
+      "brand": "Manufacturer / Brand",
+      "brand_placeholder": "Select a manufacturer...",
+      "reference": "Indoor Unit Model",
+      "reference_placeholder": "Select a model...",
+      "general": "Quick Search",
+      "general_placeholder": "Brand or Reference (e.g. Daikin FTXM...)",
+      "submit": "Check Compatibility",
+      "no_results": "No exact matches were detected for this model. Please contact our technical support for a custom study.",
+      "searching": "Checking..."
+    },
+    "results": {
+      "title": "Recommended Configuration",
+      "found_count": "compatibility results found",
+      "gateway": "Communication Gateway",
+      "connector": "Port / Connector",
+      "manual": "Technical Documentation",
+      "observations": "Installation Notes",
+      "view_manual": "Download Manual",
+      "gateway_image": "Device Image",
+      "remote_image": "Original Remote Reference",
+      "details": "Technical Specifications"
     }
   }
 }

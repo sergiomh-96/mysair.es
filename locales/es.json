@@ -10,6 +10,7 @@
     "blogs": "Blogs",
     "about": "Conócenos",
     "contact": "Contacto",
+    "compatibility": "Compatibilidad",
     "client_area": "Area Clientes"
   },
   "hero": {
@@ -142,6 +143,8 @@
     "catalog": "Catálogo Completo",
     "company": "Empresa",
     "contact": "Contacto",
+    "compatibility": "Compatibilidad",
+    "client_area": "Area Clientes",
     "legal": "Aviso Legal",
     "cookies": "Política de Cookies",
     "rights": "Todos los derechos reservados."
@@ -384,6 +387,33 @@
       "cta_btn": "Contactar con Expertos",
       "index": "Índice de contenidos",
       "info": "Información del artículo"
+    }
+  },
+  "compatibility": {
+    "title": "Herramienta de Compatibilidad CTOTAL",
+    "subtitle": "Identifica la pasarela de comunicación MYSAir correcta para la integración de tu sistema de climatización.",
+    "search": {
+      "brand": "Fabricante / Marca",
+      "brand_placeholder": "Selecciona un fabricante...",
+      "reference": "Modelo de Unidad Interior",
+      "reference_placeholder": "Selecciona el modelo...",
+      "general": "Búsqueda Rápida",
+      "general_placeholder": "Marca o Referencia (ej. Daikin FTXM...)",
+      "submit": "Consultar Compatibilidad",
+      "no_results": "No se han detectado coincidencias exactas para este modelo. Por favor, contacte con nuestro soporte técnico para un estudio personalizado.",
+      "searching": "Consultando..."
+    },
+    "results": {
+      "title": "Configuración Recomendada",
+      "found_count": "resultados de compatibilidad encontrados",
+      "gateway": "Pasarela de Comunicación",
+      "connector": "Puerto / Conector",
+      "manual": "Documentación Técnica",
+      "observations": "Notas de Instalación",
+      "view_manual": "Descargar Manual",
+      "gateway_image": "Imagen del Dispositivo",
+      "remote_image": "Referencia Mando Original",
+      "details": "Especificaciones Técnicas"
     }
   }
 }
