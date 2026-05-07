@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  verification: {
+    google: "PpvosTtC3cnr9CRwDJPuPaDecTsqRx4eWKQsyUcN8t8",
+  },
 }
 
 import { I18nProvider } from "@/lib/i18n-context"
