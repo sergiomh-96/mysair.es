@@ -115,15 +115,27 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
-                <span>info@mysair.es</span>
+                <span>mysair@mysair.es</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span>+34 951 72 23 45</span>
+                <span>966 74 44 73</span>
               </li>
-              <li className="flex items-center space-x-2">
-                <MapPin className="h-4 w-4" />
-                <span>Parque Tecnológico de Andalucía, Málaga, España</span>
+              <li className="flex items-start space-x-2">
+                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-gray-300 text-xs uppercase tracking-wider">{t("contact.info.address_fiscal")}</p>
+                  <p>C/Mayor, 27</p>
+                  <p>30149 El Siscar, Murcia, España</p>
+                </div>
+              </li>
+              <li className="flex items-start space-x-2">
+                <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-gray-300 text-xs uppercase tracking-wider">{t("contact.info.address_factory")}</p>
+                  <p>Carretera Nacional N-340</p>
+                  <p>03311 La Aparecida, Alicante, España</p>
+                </div>
               </li>
             </ul>
           </div>
