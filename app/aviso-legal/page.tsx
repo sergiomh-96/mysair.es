@@ -28,9 +28,6 @@ export default function AvisoLegalPage() {
               <strong>Teléfono:</strong> +34 966 744 473
             </p>
             <p>
-              <strong>Fax:</strong> +34 966741928
-            </p>
-            <p>
               <strong>Nombre de dominio:</strong> www.mysair.es
             </p>
           </section>
