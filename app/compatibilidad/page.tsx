@@ -431,12 +431,12 @@ export default function CompatibilityPage() {
             
             <CardContent className="p-6 md:p-8 bg-white">
               <Tabs value={searchMode} onValueChange={(v) => setSearchMode(v as "quick" | "advanced")} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 h-11 bg-slate-100 p-1 rounded-xl">
-                  <TabsTrigger value="quick" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-xs uppercase tracking-wider">
+                <TabsList className="grid w-full grid-cols-2 mb-8 h-auto bg-slate-100 p-1 rounded-xl">
+                  <TabsTrigger value="quick" className="rounded-lg py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-[10px] sm:text-xs uppercase tracking-wider">
                     Búsqueda Rápida
                   </TabsTrigger>
-                  <TabsTrigger value="advanced" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-xs uppercase tracking-wider">
-                    Filtrado por Marca / Modelo
+                  <TabsTrigger value="advanced" className="rounded-lg py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-[10px] sm:text-xs uppercase tracking-wider">
+                    Marca / Modelo
                   </TabsTrigger>
                 </TabsList>
 
