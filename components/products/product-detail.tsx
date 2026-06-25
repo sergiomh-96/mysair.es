@@ -13,6 +13,7 @@ import { STLViewer } from "./stl-viewer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cable as Cube } from "lucide-react"
 import { useI18n } from "@/lib/i18n-context"
+import { SolicitarPresupuestoBtn } from "./solicitar-presupuesto-btn"
 
 interface DocumentLink {
   name: string
@@ -588,6 +589,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               </div>
             )}
           </div>
+
+          <SolicitarPresupuestoBtn productSlug={product.slug} />
 
           {productReference && (
             <Card className="bg-blue-50 border-blue-200">

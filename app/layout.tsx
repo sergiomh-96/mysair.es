@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import { StickyContactButton } from "@/components/products/sticky-contact-button"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-geist-sans" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
@@ -69,6 +70,7 @@ export default function RootLayout({
         </noscript>
         <I18nProvider>
           <Suspense fallback={null}>{children}</Suspense>
+          <StickyContactButton />
         </I18nProvider>
         <Analytics />
       </body>
