@@ -113,6 +113,20 @@ export async function submitContactForm(formData: FormData) {
   }
 
   const inquiryType = formData.get("inquiry_type") as string
+  const perfilCliente = formData.get("perfil_cliente") as string
+
+  const profileLabels: Record<string, string> = {
+    instalador: "Instalador Profesional",
+    arquitectura_ingenieria: "Estudio de Arquitectura / Ingeniería",
+    distribuidor: "Distribuidor",
+    particular: "Particular",
+  }
+  const perfilLabel = perfilCliente ? (profileLabels[perfilCliente] || perfilCliente) : null
+
+  const originalMessage = formData.get("message") as string
+  const finalMessage = perfilLabel
+    ? `[Perfil de Cliente: ${perfilLabel}]\n\n${originalMessage}`
+    : originalMessage
 
   const contactData = {
     name: formData.get("name") as string,
@@ -120,7 +134,7 @@ export async function submitContactForm(formData: FormData) {
     phone: (formData.get("phone") as string) || null,
     company: (formData.get("company") as string) || null,
     subject: inquiryType,
-    message: formData.get("message") as string,
+    message: finalMessage,
     attachment_url: attachmentUrl,
     attachment_filename: attachmentFilename,
     attachment_size: attachmentSize,
@@ -150,6 +164,7 @@ export async function submitContactForm(formData: FormData) {
             <p><strong>Email:</strong> ${contactData.email}</p>
             <p><strong>Teléfono:</strong> ${contactData.phone || "No proporcionado"}</p>
             <p><strong>Empresa:</strong> ${contactData.company || "No proporcionada"}</p>
+            ${perfilLabel ? `<p><strong>Perfil de Cliente:</strong> ${perfilLabel}</p>` : ""}
             <p><strong>Asunto:</strong> ${inquiryType}</p>
             <hr style="border: 1px solid #ddd;" />
             <h3>Mensaje:</h3>

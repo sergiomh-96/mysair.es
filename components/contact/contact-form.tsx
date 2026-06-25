@@ -32,6 +32,7 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
   const [formError, setFormError] = useState<string>("")
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false)
+  const [perfilCliente, setPerfilCliente] = useState("")
 
   useEffect(() => {
     // Only load reCAPTCHA if a valid site key is configured
@@ -148,6 +149,7 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
       setSelectedFile(null)
       setFileError("")
       setAcceptedPrivacy(false)
+      setPerfilCliente("")
     } catch (error) {
       console.error("Error submitting form:", error)
       setFormError(t("contact.form.error_generic"))
@@ -199,6 +201,23 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
               <Label htmlFor="company">{t("contact.form.company")}</Label>
               <Input id="company" name="company" placeholder={t("contact.form.company_placeholder")} />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="perfil_cliente">¿Cuál es tu perfil?</Label>
+            <select
+              id="perfil_cliente"
+              name="perfil_cliente"
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-gray-900 border-gray-200"
+              value={perfilCliente}
+              onChange={(e) => setPerfilCliente(e.target.value)}
+            >
+              <option value="">Selecciona una opción (Opcional)</option>
+              <option value="instalador">Instalador Profesional</option>
+              <option value="arquitectura_ingenieria">Estudio de Arquitectura / Ingeniería</option>
+              <option value="distribuidor">Distribuidor</option>
+              <option value="particular">Particular</option>
+            </select>
           </div>
 
           <div className="space-y-2">
