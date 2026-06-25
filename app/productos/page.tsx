@@ -2,6 +2,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ProductsHeader } from "@/components/products/products-header"
 import { ProductsClient } from "@/components/products/products-client"
+import { SeoTextBlock } from "@/components/products/seo-text-block"
 import type { Metadata } from "next"
 
 const CATEGORY_SEO: Record<
@@ -12,7 +13,7 @@ const CATEGORY_SEO: Record<
     title: "Rejillas de Aire Acondicionado y Sistemas de Difusión | MYSAir",
     h1: "Rejillas de Aire Acondicionado y Sistemas de Difusión",
     description:
-      "Fabricantes de rejillas de aire acondicionado, rejillas de impulsión, salidas de aire y sistemas de difusión en aluminio para proyectos de climatización B2B.",
+      "Fabricantes de rejillas de aire acondicionado, rejillas de impulsión, salidas de aire y sistemas de difusión en aluminio para proyectos de climatización.",
   },
   smart_systems: {
     title: "Sistemas de Zonificación de Aire Acondicionado por Conductos | MYSAir",
@@ -73,6 +74,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         )}
 
         <ProductsClient initialCategory={categoria} />
+
+        <SeoTextBlock categoria={categoria} />
       </div>
 
       <Footer />

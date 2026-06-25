@@ -645,6 +645,19 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
         </div>
       )}
 
+      {/* SEO Text Block for ma35 */}
+      {product.slug === "ma35" && (
+        <div className="mt-8">
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100">
+            <CardContent className="pt-6">
+              <p className="text-gray-700 leading-relaxed text-pretty">
+                La solución definitiva para techos continuos. Nuestro difusor lineal oculto actúa como una rejilla lineal de aire acondicionado altamente estética, haciendo que la climatización pase desapercibida a la vista sin perder potencia de soplado. Es ideal para combinarlo con su correspondiente plenum para difusor lineal, asegurando una distribución acústicamente aislada y un flujo de aire constante en proyectos arquitectónicos premium.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Technical Documentation */}
       <div className="mt-8">
         <Card>
