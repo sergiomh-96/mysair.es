@@ -80,7 +80,7 @@ export function Navigation() {
           {/* CTA & Language Switcher */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
-            <Button asChild>
+            <Button asChild className="bg-black hover:bg-gray-900 text-white">
               <Link href="/contacto">{t("nav.client_area")}</Link>
             </Button>
           </div>
@@ -122,7 +122,7 @@ export function Navigation() {
               <Link href="/contacto" className="text-gray-700 hover:text-blue-600" onClick={() => setIsOpen(false)}>
                 {t("nav.contact")}
               </Link>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full bg-black hover:bg-gray-900 text-white">
                 <Link href="/contacto" onClick={() => setIsOpen(false)}>{t("nav.client_area")}</Link>
               </Button>
             </div>
