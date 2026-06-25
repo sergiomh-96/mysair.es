@@ -10,6 +10,7 @@ interface FilterState {
   selectedCategories: string[]
   selectedSubcategories: string[]
   showFeatured: boolean
+  showInactive: boolean
 }
 
 interface ProductsFiltersProps {
@@ -19,7 +20,7 @@ interface ProductsFiltersProps {
 
 export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersProps) {
   const { t } = useI18n()
-  const { selectedCategories, selectedSubcategories, showFeatured } = filters
+  const { selectedCategories, selectedSubcategories, showFeatured, showInactive } = filters
 
   const categories = [
     { id: "air_diffusion", name: t("products.detail.cat_air"), icon: Wind },
@@ -66,6 +67,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
       selectedCategories: newCategories,
       selectedSubcategories: newSubcategories,
       showFeatured,
+      showInactive,
     })
   }
 
@@ -78,6 +80,7 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
       selectedCategories,
       selectedSubcategories: newSubcategories,
       showFeatured,
+      showInactive,
     })
   }
 
@@ -86,6 +89,16 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
       selectedCategories,
       selectedSubcategories,
       showFeatured: checked,
+      showInactive,
+    })
+  }
+
+  const handleInactiveChange = (checked: boolean) => {
+    onFiltersChange({
+      selectedCategories,
+      selectedSubcategories,
+      showFeatured,
+      showInactive: checked,
     })
   }
 
@@ -94,10 +107,11 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
       selectedCategories: [],
       selectedSubcategories: [],
       showFeatured: false,
+      showInactive: false,
     })
   }
 
-  const hasActiveFilters = selectedCategories.length > 0 || selectedSubcategories.length > 0 || showFeatured
+  const hasActiveFilters = selectedCategories.length > 0 || selectedSubcategories.length > 0 || showFeatured || showInactive
 
   return (
     <Card className="sticky top-4">
@@ -160,11 +174,18 @@ export function ProductsFilters({ filters, onFiltersChange }: ProductsFiltersPro
         )}
 
         {/* Featured Products */}
-        <div>
+        <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <Checkbox id="featured" checked={showFeatured} onCheckedChange={handleFeaturedChange} />
             <label htmlFor="featured" className="text-sm cursor-pointer">
               {t("products.filters.featured")}
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox id="inactive" checked={showInactive} onCheckedChange={handleInactiveChange} />
+            <label htmlFor="inactive" className="text-sm cursor-pointer">
+              {t("products.filters.show_discontinued")}
             </label>
           </div>
         </div>

@@ -1,62 +1,78 @@
-"use client"
-
-import { useState, useEffect, useRef } from "react"
-import { useSearchParams } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { ProductsGrid } from "@/components/products/products-grid"
-import { ProductsFilters } from "@/components/products/products-filters"
 import { ProductsHeader } from "@/components/products/products-header"
+import { ProductsClient } from "@/components/products/products-client"
+import type { Metadata } from "next"
 
-interface FilterState {
-  selectedCategories: string[]
-  selectedSubcategories: string[]
-  showFeatured: boolean
+const CATEGORY_SEO: Record<
+  string,
+  { title: string; h1: string; description: string }
+> = {
+  air_diffusion: {
+    title: "Rejillas de Aire Acondicionado y Sistemas de Difusión | MYSAir",
+    h1: "Rejillas de Aire Acondicionado y Sistemas de Difusión",
+    description:
+      "Fabricantes de rejillas de aire acondicionado, rejillas de impulsión, salidas de aire y sistemas de difusión en aluminio para proyectos de climatización B2B.",
+  },
+  smart_systems: {
+    title: "Sistemas de Zonificación de Aire Acondicionado por Conductos | MYSAir",
+    h1: "Sistemas de Zonificación de Aire Acondicionado por Conductos",
+    description:
+      "Sistemas de zonificación de aire acondicionado por conductos. Módulos de control, compuertas de regulación y termostatos para eficiencia energética.",
+  },
+  vmc: {
+    title: "Sistemas de Ventilación Mecánica Controlada (VMC) | MYSAir",
+    h1: "Sistemas de Ventilación Mecánica Controlada",
+    description:
+      "Sistemas VMC para garantizar la calidad del aire interior. Soluciones de ventilación eficientes para cumplir con la normativa en proyectos arquitectónicos.",
+  },
 }
 
-export default function ProductsPage() {
-  const searchParams = useSearchParams()
-  const prevCategoryRef = useRef<string | null>(null)
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
 
-  const [filters, setFilters] = useState<FilterState>(() => {
-    const categoria = searchParams.get("categoria")
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams
+  const categoria = typeof resolvedSearchParams.categoria === "string" ? resolvedSearchParams.categoria : undefined
+
+  if (categoria && CATEGORY_SEO[categoria]) {
+    const { title, description } = CATEGORY_SEO[categoria]
     return {
-      selectedCategories: categoria ? [categoria] : [],
-      selectedSubcategories: [],
-      showFeatured: false,
+      title,
+      description,
     }
-  })
+  }
 
-  useEffect(() => {
-    const categoria = searchParams.get("categoria")
-    if (categoria !== prevCategoryRef.current) {
-      prevCategoryRef.current = categoria
-      setFilters((prevFilters) => ({
-        ...prevFilters,
-        selectedCategories: categoria ? [categoria] : [],
-        selectedSubcategories: [], // Reset subcategories when category changes
-      }))
-    }
-  }, [searchParams])
+  return {
+    title: "Productos | MYSAir",
+    description:
+      "Explora la gama completa de soluciones de climatización MYSAir: difusión de aire, zonificación inteligente y ventilación mecánica controlada.",
+  }
+}
+
+export default async function ProductsPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams
+  const categoria = typeof resolvedSearchParams.categoria === "string" ? resolvedSearchParams.categoria : undefined
+  const seoData = categoria ? CATEGORY_SEO[categoria] : undefined
 
   return (
     <main className="min-h-screen bg-gray-50">
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ProductsHeader />
-
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <ProductsFilters filters={filters} onFiltersChange={setFilters} />
+        {seoData ? (
+          <div className="mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 ml-14 mt-9">
+              {seoData.h1}
+            </h1>
+            <p className="text-xl text-gray-600 text-pretty px-14">{seoData.description}</p>
           </div>
+        ) : (
+          <ProductsHeader />
+        )}
 
-          {/* Products Grid */}
-          <div className="lg:col-span-3">
-            <ProductsGrid filters={filters} />
-          </div>
-        </div>
+        <ProductsClient initialCategory={categoria} />
       </div>
 
       <Footer />

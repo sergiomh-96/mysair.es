@@ -18,6 +18,7 @@ interface Product {
   is_featured: boolean
   sort_order: number // Added sort_order field for manual ordering
   slug?: string // Made slug optional since column might not exist yet
+  is_active?: boolean
 }
 
 interface ProductCardProps {
@@ -102,6 +103,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <Badge className="absolute top-2 left-2 z-10 bg-blue-600 text-xs">
             <Star className="h-2 w-2 mr-1" />
             {t("products.detail.featured")}
+          </Badge>
+        )}
+        {product.is_active === false && (
+          <Badge variant="destructive" className="absolute top-2 right-2 z-10 text-xs">
+            {t("products.detail.discontinued")}
           </Badge>
         )}
         <div className="w-48 h-48 bg-gray-100 overflow-hidden mx-auto">

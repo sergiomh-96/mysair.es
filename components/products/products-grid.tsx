@@ -17,12 +17,14 @@ interface Product {
   is_featured: boolean
   sort_order: number // Added sort_order field for manual ordering
   slug?: string // Made slug optional since column might not exist yet
+  is_active?: boolean
 }
 
 interface FilterState {
   selectedCategories: string[]
   selectedSubcategories: string[]
   showFeatured: boolean
+  showInactive: boolean
 }
 
 interface ProductsGridProps {
@@ -91,6 +93,11 @@ export function ProductsGrid({ filters }: ProductsGridProps) {
     // Apply featured filter
     if (filters.showFeatured) {
       filtered = filtered.filter((product) => product.is_featured)
+    }
+
+    // Apply inactive filter (hide by default, show if filters.showInactive is true)
+    if (!filters.showInactive) {
+      filtered = filtered.filter((product) => product.is_active !== false)
     }
 
     filtered = filtered.sort((a, b) => {

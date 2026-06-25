@@ -24,6 +24,7 @@ export async function upsertProduct(formData: FormData) {
     category: formData.get("category"),
     subcategory: formData.get("subcategory") || null,
     is_featured: formData.get("is_featured") === "true",
+    is_active: formData.get("is_active") === "true",
     sort_order: Number(formData.get("sort_order")) || 0,
     stl_model_url: formData.get("stl_model_url") || null,
   }

@@ -29,6 +29,7 @@ interface Product {
   image_url: string[]
   technical_specs: any
   is_featured: boolean
+  is_active: boolean
   stl_model_url?: string
   ficha_tecnica?: DocumentLink[]
   manual_usuario?: DocumentLink[]
@@ -248,6 +249,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                       {t("products.detail.featured")}
                     </Badge>
                   )}
+                  {product.is_active === false && (
+                    <Badge variant="destructive" className="absolute top-4 right-4 z-10">
+                      {t("products.detail.discontinued")}
+                    </Badge>
+                  )}
 
                   <img
                     src={images[currentImageIndex] || "/placeholder.svg?height=500&width=500"}
@@ -314,6 +320,11 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   <Badge className="absolute top-4 left-4 z-10 bg-blue-600">
                     <Star className="h-3 w-3 mr-1" />
                     {t("products.detail.featured")}
+                  </Badge>
+                )}
+                {product.is_active === false && (
+                  <Badge variant="destructive" className="absolute top-4 right-4 z-10">
+                    {t("products.detail.discontinued")}
                   </Badge>
                 )}
 

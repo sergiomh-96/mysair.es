@@ -23,6 +23,7 @@ type Product = {
   category: string
   subcategory: string | null
   is_featured: boolean
+  is_active: boolean
   sort_order: number
   stl_model_url: string | null
   image_url: unknown
@@ -147,6 +148,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
               <TableHead>Categoría</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Destacado</TableHead>
+              <TableHead>Activo</TableHead>
               <TableHead>Videos</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -164,6 +166,9 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                 <TableCell className="text-slate-500 text-sm font-mono">{p.slug}</TableCell>
                 <TableCell>
                   {p.is_featured ? <Badge className="bg-blue-100 text-blue-700 text-xs">Sí</Badge> : <span className="text-slate-400 text-xs">No</span>}
+                </TableCell>
+                <TableCell>
+                  {p.is_active !== false ? <Badge className="bg-green-100 text-green-700 text-xs">Sí</Badge> : <Badge className="bg-red-100 text-red-700 text-xs">No</Badge>}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
@@ -241,6 +246,16 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                       <SelectContent>
                         <SelectItem value="true">Sí</SelectItem>
                         <SelectItem value="false">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Activo (en catálogo)</Label>
+                    <Select name="is_active" defaultValue={editingProduct?.is_active !== false ? "true" : "false"}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Sí (Activo)</SelectItem>
+                        <SelectItem value="false">No (Descatalogado)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
