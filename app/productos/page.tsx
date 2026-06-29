@@ -64,10 +64,10 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {seoData ? (
           <div className="mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 ml-14 mt-9">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 mt-9">
               {seoData.h1}
             </h1>
-            <p className="text-xl text-gray-600 text-pretty px-14">{seoData.description}</p>
+            <p className="text-xl text-gray-600 text-pretty">{seoData.description}</p>
           </div>
         ) : (
           <ProductsHeader />
