@@ -10,6 +10,7 @@ interface FilterState {
   selectedCategories: string[]
   selectedSubcategories: string[]
   showFeatured: boolean
+  showInactive: boolean
 }
 
 export default function SmartSystemsPage() {
@@ -17,6 +18,7 @@ export default function SmartSystemsPage() {
     selectedCategories: ["smart_systems"],
     selectedSubcategories: [],
     showFeatured: false,
+    showInactive: false,
   })
 
   return (

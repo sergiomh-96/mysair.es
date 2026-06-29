@@ -1,6 +1,12 @@
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { getAdminSession } from "@/lib/actions/admin-auth"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
+
+export const metadata: Metadata = {
+  title: "Admin Panel | MYSAir",
+  description: "Panel de administración de MYSAir.",
+}
 
 export default async function AdminLayout({
   children,

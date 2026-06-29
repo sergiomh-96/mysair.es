@@ -1,9 +1,16 @@
+import type { Metadata } from "next"
 import { Suspense } from "react"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { BlogHeader } from "@/components/blog/blog-header"
 import { BlogGrid } from "@/components/blog/blog-grid"
 import { BlogFilters } from "@/components/blog/blog-filters"
+
+export const metadata: Metadata = {
+  title: "Blog de Climatización y Eficiencia Energética | MYSAir",
+  description:
+    "Artículos, novedades y guías sobre climatización, zonificación inteligente, ventilación y eficiencia energética en el sector.",
+}
 
 export default function BlogPage() {
   return (

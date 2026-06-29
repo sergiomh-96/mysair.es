@@ -10,6 +10,7 @@ interface FilterState {
   selectedCategories: string[]
   selectedSubcategories: string[]
   showFeatured: boolean
+  showInactive: boolean
 }
 
 export default function AirDiffusionPage() {
@@ -17,6 +18,7 @@ export default function AirDiffusionPage() {
     selectedCategories: ["air_diffusion"],
     selectedSubcategories: [],
     showFeatured: false,
+    showInactive: false,
   })
 
   return (

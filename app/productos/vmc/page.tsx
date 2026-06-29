@@ -10,6 +10,7 @@ interface FilterState {
   selectedCategories: string[]
   selectedSubcategories: string[]
   showFeatured: boolean
+  showInactive: boolean
 }
 
 export default function VMCProductsPage() {
@@ -17,6 +18,7 @@ export default function VMCProductsPage() {
     selectedCategories: ["vmc"],
     selectedSubcategories: [],
     showFeatured: false,
+    showInactive: false,
   })
 
   return (
