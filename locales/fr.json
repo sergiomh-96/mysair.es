@@ -145,6 +145,7 @@
     "contact": "Contact",
     "legal": "Mentions Légales",
     "cookies": "Politique de Cookies",
+    "privacy_app": "Politique de Confidentialité de l'App",
     "rights": "Tous droits réservés."
   },
   "testimonials": {
@@ -268,6 +269,20 @@
     "header": {
       "title": "Nos Produits",
       "subtitle": "Explorez notre large gamme de solutions HVAC et de diffusion d'air"
+    },
+    "categories": {
+      "air_diffusion": {
+        "title": "Grilles de Climatisation et Systèmes de Diffusion",
+        "description": "Fabricants de grilles de climatisation, grilles de soufflage, sorties d'air et systèmes de diffusion en aluminium pour projets CVC."
+      },
+      "smart_systems": {
+        "title": "Systèmes de Zonage de Climatisation par Gaine",
+        "description": "Systèmes de zonage de climatisation par gaine. Modules de contrôle, registres de régulation et thermostats pour l'efficacité énergétique."
+      },
+      "vmc": {
+        "title": "Systèmes de Ventilation Mécanique Contrôlée",
+        "description": "Systèmes VMC pour garantir la qualité de l'air intérieur. Solutions de ventilation efficaces pour respecter les réglementations dans les projets architecturaux."
+      }
     },
     "filters": {
       "title": "Filtres",

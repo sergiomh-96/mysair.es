@@ -24,11 +24,7 @@ export default function SmartSystemsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <ProductsHeader
-        title="Sistemas de zonas"
-        description="Soluciones inteligentes de zonificación y control automático para una climatización eficiente y cómoda."
-        category="smart_systems"
-      />
+      <ProductsHeader category="smart_systems" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="lg:w-64">

@@ -149,6 +149,9 @@ export function Footer() {
             <Link href="/politica-cookies" className="text-gray-400 hover:text-white transition-colors">
               {t("footer.cookies")}
             </Link>
+            <Link href="/politica-de-privacidad-app" className="text-gray-400 hover:text-white transition-colors">
+              {t("footer.privacy_app")}
+            </Link>
           </div>
           <div className="text-center text-sm text-gray-400">
             <p>© {new Date().getFullYear()} MYSAir. {t("footer.rights")}</p>

@@ -24,11 +24,7 @@ export default function VMCProductsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <ProductsHeader
-        title="VMC - Ventilación Mecánica Controlada"
-        description="Sistemas avanzados de ventilación con recuperación de calor para máxima eficiencia energética"
-        category="vmc"
-      />
+      <ProductsHeader category="vmc" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="lg:w-64">

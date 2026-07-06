@@ -145,6 +145,7 @@
     "contact": "Contatto",
     "legal": "Avviso Legale",
     "cookies": "Politica sui Cookie",
+    "privacy_app": "Informativa sulla Privacy dell'App",
     "rights": "Tutti i diritti riservati."
   },
   "testimonials": {
@@ -268,6 +269,20 @@
     "header": {
       "title": "I Nostri Prodotti",
       "subtitle": "Esplora la nostra vasta gamma di soluzioni HVAC e di diffusione dell'aria"
+    },
+    "categories": {
+      "air_diffusion": {
+        "title": "Bocchette per Aria Condizionata e Sistemi di Diffusione",
+        "description": "Produttori di bocchette per aria condizionata, griglie di mandata, bocchette di uscita dell'aria e sistemi di diffusione in alluminio per progetti HVAC."
+      },
+      "smart_systems": {
+        "title": "Sistemi di Zonizzazione dell'Aria Condizionata Canalizzata",
+        "description": "Sistemi di zonizzazione dell'aria condizionata canalizzata. Moduli di controllo, serrande di regolazione e termostati per l'efficienza energetica."
+      },
+      "vmc": {
+        "title": "Sistemi di Ventilazione Meccanica Controllata",
+        "description": "Sistemi VMC per garantire la qualità dell'aria interna. Soluzioni di ventilazione efficienti per rispettare le normative nei progetti architettonici."
+      }
     },
     "filters": {
       "title": "Filtri",

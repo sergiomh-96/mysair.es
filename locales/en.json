@@ -145,6 +145,7 @@
     "contact": "Contact",
     "legal": "Legal Notice",
     "cookies": "Cookies Policy",
+    "privacy_app": "App Privacy Policy",
     "rights": "All rights reserved."
   },
   "testimonials": {
@@ -268,6 +269,20 @@
     "header": {
       "title": "Our Products",
       "subtitle": "Explore our wide range of HVAC and air diffusion solutions"
+    },
+    "categories": {
+      "air_diffusion": {
+        "title": "Air Conditioning Grilles and Air Diffusion Systems",
+        "description": "Manufacturers of air conditioning grilles, supply grilles, air outlets, and aluminum diffusion systems for HVAC projects."
+      },
+      "smart_systems": {
+        "title": "Ducted Air Conditioning Zoning Systems",
+        "description": "Ducted air conditioning zoning systems. Control modules, regulating dampers, and thermostats for energy efficiency."
+      },
+      "vmc": {
+        "title": "Controlled Mechanical Ventilation Systems",
+        "description": "CMV systems to ensure indoor air quality. Efficient ventilation solutions to comply with regulations in architectural projects."
+      }
     },
     "filters": {
       "title": "Filters",

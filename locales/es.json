@@ -147,6 +147,7 @@
     "client_area": "Area Clientes",
     "legal": "Aviso Legal",
     "cookies": "Política de Cookies",
+    "privacy_app": "Política de Privacidad App",
     "rights": "Todos los derechos reservados."
   },
   "testimonials": {
@@ -270,6 +271,20 @@
     "header": {
       "title": "Nuestros Productos",
       "subtitle": "Explora nuestra amplia gama de soluciones de climatización y difusión de aire"
+    },
+    "categories": {
+      "air_diffusion": {
+        "title": "Rejillas de Aire Acondicionado y Sistemas de Difusión",
+        "description": "Fabricantes de rejillas de aire acondicionado, rejillas de impulsión, salidas de aire y sistemas de difusión en aluminio para proyectos de climatización."
+      },
+      "smart_systems": {
+        "title": "Sistemas de Zonificación de Aire Acondicionado por Conductos",
+        "description": "Sistemas de zonificación de aire acondicionado por conductos. Módulos de control, compuertas de regulación y termostatos para eficiencia energética."
+      },
+      "vmc": {
+        "title": "Sistemas de Ventilación Mecánica Controlada",
+        "description": "Sistemas VMC para garantizar la calidad del aire interior. Soluciones de ventilación eficientes para cumplir con la normativa en proyectos arquitectónicos."
+      }
     },
     "filters": {
       "title": "Filtros",

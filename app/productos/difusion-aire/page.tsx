@@ -24,11 +24,7 @@ export default function AirDiffusionPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <ProductsHeader
-        title="Difusión de Aire"
-        description="Rejillas, difusores y compuertas de alta calidad para la distribución óptima del aire en sistemas de climatización."
-        category="air_diffusion"
-      />
+      <ProductsHeader category="air_diffusion" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="lg:w-64">

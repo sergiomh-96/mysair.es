@@ -400,10 +400,10 @@ export default function CompatibilityPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <ScrollRevealWrapper>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Herramienta de Compatibilidad CTOTAL
+              {t("compatibility.title")}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Identifica la pasarela de comunicación MYSAir correcta para la integración de tu sistema de climatización.
+              {t("compatibility.subtitle")}
             </p>
           </ScrollRevealWrapper>
         </div>
@@ -433,10 +433,10 @@ export default function CompatibilityPage() {
               <Tabs value={searchMode} onValueChange={(v) => setSearchMode(v as "quick" | "advanced")} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-8 h-auto bg-slate-100 p-1 rounded-xl">
                   <TabsTrigger value="quick" className="rounded-lg py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-[10px] sm:text-xs uppercase tracking-wider">
-                    Búsqueda Rápida
+                    {t("compatibility.search.general")}
                   </TabsTrigger>
                   <TabsTrigger value="advanced" className="rounded-lg py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold transition-all text-[10px] sm:text-xs uppercase tracking-wider">
-                    Marca / Modelo
+                    {t("compatibility.search.brand")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -444,10 +444,10 @@ export default function CompatibilityPage() {
                   <TabsContent value="quick" className="mt-0 space-y-4">
                     {/* General Search Input */}
                     <div className="space-y-2 relative">
-                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Introduzca marca o referencia</label>
+                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">{t("compatibility.search.general")}</label>
                       <div className="relative">
                         <Input 
-                          placeholder="Ej. Daikin FTXM o Mitsubishi MSZ..."
+                          placeholder={t("compatibility.search.general_placeholder")}
                           value={generalSearch}
                           onChange={(e) => setGeneralSearch(e.target.value)}
                           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -501,7 +501,7 @@ export default function CompatibilityPage() {
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Brand Searchable Select */}
                       <div className="space-y-2 flex flex-col">
-                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Fabricante / Marca</label>
+                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">{t("compatibility.search.brand")}</label>
                         <Popover open={openBrands} onOpenChange={setOpenBrands}>
                           <PopoverTrigger asChild>
                             <Button
@@ -512,7 +512,7 @@ export default function CompatibilityPage() {
                             >
                               <span className="truncate">
                                 {selectedBrand === "all" 
-                                  ? "Seleccione Fabricante" 
+                                  ? t("compatibility.search.brand_placeholder") 
                                   : brands.find((brand) => brand === selectedBrand)}
                               </span>
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -566,7 +566,7 @@ export default function CompatibilityPage() {
                       
                       {/* Reference Searchable Select */}
                       <div className="space-y-2 flex flex-col">
-                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Modelo de Unidad Interior</label>
+                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">{t("compatibility.search.reference")}</label>
                         <Popover open={openRefs} onOpenChange={setOpenRefs}>
                           <PopoverTrigger asChild>
                             <Button
@@ -578,9 +578,9 @@ export default function CompatibilityPage() {
                             >
                               <span className="truncate">
                                 {selectedBrand === "all" 
-                                  ? "Selecciona primero una marca" 
+                                  ? t("compatibility.search.brand_placeholder") 
                                   : selectedReference === "all"
-                                    ? "Filtro: Todos los modelos"
+                                    ? t("compatibility.search.reference_placeholder")
                                     : references.find((ref) => ref === selectedReference) || selectedReference}
                               </span>
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -639,12 +639,12 @@ export default function CompatibilityPage() {
                       {loading ? (
                         <>
                           <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                          Consultando...
+                          {t("compatibility.search.searching")}
                         </>
                       ) : (
                         <>
                           <Search className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform" />
-                          Consultar Compatibilidad
+                          {t("compatibility.search.submit")}
                         </>
                       )}
                     </Button>
@@ -670,7 +670,7 @@ export default function CompatibilityPage() {
             <div className="grid grid-cols-1 gap-10">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end border-b pb-4 gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Configuración Recomendada</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{t("compatibility.results.title")}</h2>
                   <p className="text-gray-400 text-sm mt-1">Sistemas MYSAir compatibles con tu instalación</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -678,7 +678,7 @@ export default function CompatibilityPage() {
                     Página {currentPage} de {totalPages}
                   </Badge>
                   <Badge variant="secondary" className="px-4 py-2 text-md font-bold bg-blue-50 text-blue-700 border-blue-100 rounded-lg">
-                    {results.length} resultados encontrados
+                    {results.length} {t("compatibility.results.found_count")}
                   </Badge>
                 </div>
               </div>
@@ -706,7 +706,7 @@ export default function CompatibilityPage() {
                                   <Info className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                  <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-0.5">Pasarela de Comunicación</p>
+                                  <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-0.5">{t("compatibility.results.gateway")}</p>
                                   <p className="text-lg font-black text-gray-900">{result.gateway_ref}</p>
                                 </div>
                               </div>
@@ -716,7 +716,7 @@ export default function CompatibilityPage() {
                                   <ChevronRight className="h-5 w-5 text-gray-600" />
                                 </div>
                                 <div>
-                                  <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-0.5">Puerto / Conector</p>
+                                  <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-0.5">{t("compatibility.results.connector")}</p>
                                   <p className="text-base font-bold text-gray-700">{result.connector || 'Universal / IR'}</p>
                                 </div>
                               </div>
@@ -724,7 +724,7 @@ export default function CompatibilityPage() {
 
                             {result.observations && (
                               <div className="mt-4 p-4 bg-amber-50 rounded-xl border-l-4 border-amber-400">
-                                <p className="text-[9px] text-amber-700 uppercase font-black tracking-widest mb-1">Notas de Instalación</p>
+                                <p className="text-[9px] text-amber-700 uppercase font-black tracking-widest mb-1">{t("compatibility.results.observations")}</p>
                                 <p className="text-xs text-amber-900 leading-relaxed font-medium">"{result.observations}"</p>
                               </div>
                             )}
@@ -734,7 +734,7 @@ export default function CompatibilityPage() {
                             <Button asChild className="mt-6 w-full h-11 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-all shadow-xl shadow-gray-200">
                               <a href={result.manual_url} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="mr-2 h-4 w-4" />
-                                Descargar Manual
+                                {t("compatibility.results.view_manual")}
                               </a>
                             </Button>
                           )}
@@ -745,7 +745,7 @@ export default function CompatibilityPage() {
                           {/* Gateway Image Gallery */}
                           <div className="p-6 flex flex-col items-center justify-between text-center border-b sm:border-b-0 sm:border-r border-gray-200 bg-gradient-to-b from-slate-50 to-white">
                              <div className="w-full">
-                               <Badge variant="outline" className="mb-4 px-4 py-1 text-[9px] uppercase font-black tracking-widest border-slate-200 text-slate-400">Imagen del Dispositivo</Badge>
+                               <Badge variant="outline" className="mb-4 px-4 py-1 text-[9px] uppercase font-black tracking-widest border-slate-200 text-slate-400">{t("compatibility.results.gateway_image")}</Badge>
                              </div>
                              
                              <div className="relative w-full aspect-square max-w-[180px] mb-4">
@@ -760,7 +760,7 @@ export default function CompatibilityPage() {
                           {/* Remote Image Gallery */}
                           <div className="p-6 flex flex-col items-center justify-between text-center bg-white sm:bg-transparent">
                              <div className="w-full">
-                               <Badge variant="outline" className="mb-4 px-4 py-1 text-[9px] uppercase font-black tracking-widest border-slate-200 text-slate-400">Referencia Mando Original</Badge>
+                               <Badge variant="outline" className="mb-4 px-4 py-1 text-[9px] uppercase font-black tracking-widest border-slate-200 text-slate-400">{t("compatibility.results.remote_image")}</Badge>
                              </div>
                              
                              <div className="relative w-full aspect-[2/3] max-w-[130px] mb-4">
@@ -850,7 +850,7 @@ export default function CompatibilityPage() {
                   <Search className="h-12 w-12 text-slate-300" />
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-4">Sin coincidencias detectadas</h3>
-                <p className="text-gray-500 mb-8 max-w-md mx-auto leading-relaxed">No se han detectado coincidencias exactas para este modelo. Por favor, contacte con nuestro soporte técnico para un estudio personalizado.</p>
+                <p className="text-gray-500 mb-8 max-w-md mx-auto leading-relaxed">{t("compatibility.search.no_results")}</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 rounded-xl px-8 font-bold">
                     <Link href="/contacto">Solicitar Ayuda Técnica</Link>
