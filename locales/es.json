@@ -432,5 +432,21 @@
       "remote_image": "Referencia Mando Original",
       "details": "Especificaciones Técnicas"
     }
+  },
+  "cookies": {
+    "title": "Uso de Cookies",
+    "description": "Utilizamos cookies propias y de terceros para garantizar el correcto funcionamiento del sitio web, analizar el tráfico y mejorar su experiencia de navegación. Puede aceptar todas las cookies, rechazarlas o configurar sus preferencias.",
+    "accept_all": "Aceptar todas",
+    "reject_optional": "Solo necesarias",
+    "settings": "Configurar",
+    "more_info": "Más información",
+    "settings_title": "Configuración de Cookies",
+    "save_preferences": "Guardar preferencias",
+    "essential_title": "Cookies Técnicas y Necesarias",
+    "essential_desc": "Son esenciales para el funcionamiento básico del sitio web, como la navegación y el acceso a áreas seguras. No se pueden desactivar.",
+    "analytics_title": "Cookies de Análisis y Rendimiento",
+    "analytics_desc": "Nos permiten medir y analizar la navegación de los usuarios (Google Analytics, Clarity) para mejorar el rendimiento del sitio y la experiencia de uso.",
+    "always_active": "Siempre activas",
+    "privacy_policy": "Política de Cookies"
   }
 }

@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 }
 
 import { I18nProvider } from "@/lib/i18n-context"
+import { CookieBanner } from "@/components/cookie-banner"
 
 export default function RootLayout({
   children,
@@ -32,6 +33,19 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
+        {/* Google Consent Mode Default */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied'
+              });
+            `,
+          }}
+        />
         {/* Google Analytics (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LP258KD0K1" />
         <script
@@ -71,6 +85,7 @@ export default function RootLayout({
         <I18nProvider>
           <Suspense fallback={null}>{children}</Suspense>
           <StickyContactButton />
+          <CookieBanner />
         </I18nProvider>
         <Analytics />
       </body>

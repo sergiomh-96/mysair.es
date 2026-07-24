@@ -7,26 +7,40 @@ export function useScrollReveal() {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setIsVisible(true)
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting || entry.intersectionRatio > 0) {
           setIsVisible(true)
-          observer.unobserve(entry.target)
+          if (entry.target) {
+            observer.unobserve(entry.target)
+          }
         }
       },
       {
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px",
+        threshold: 0,
+        rootMargin: "200px 0px 200px 0px",
       },
     )
 
-    if (ref.current) {
-      observer.observe(ref.current)
+    const element = ref.current
+    if (element) {
+      observer.observe(element)
     }
 
+    // Safety fallback: reveal after a short delay so content is never permanently hidden
+    const timer = setTimeout(() => {
+      setIsVisible(true)
+    }, 400)
+
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current)
+      clearTimeout(timer)
+      if (element) {
+        observer.unobserve(element)
       }
     }
   }, [])

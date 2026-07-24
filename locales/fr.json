@@ -427,5 +427,21 @@
       "remote_image": "Image Télécommande",
       "details": "Détails Techniques"
     }
+  },
+  "cookies": {
+    "title": "Utilisation des Cookies",
+    "description": "Nous utilisons des cookies propres et de tiers pour garantir el bon fonctionnement du site, analyser le trafic et améliorer votre expérience de navigation. Vous pouvez tout accepter, refuser les cookies optionnels ou personnaliser vos préférences.",
+    "accept_all": "Tout accepter",
+    "reject_optional": "Uniquement essentiels",
+    "settings": "Personnaliser",
+    "more_info": "Plus d'informations",
+    "settings_title": "Paramètres des Cookies",
+    "save_preferences": "Enregistrer mes préférences",
+    "essential_title": "Cookies Techniques et Essentiels",
+    "essential_desc": "Essentiels au fonctionnement de base du site web, tels que la navigation et l'accès aux zones sécurisées. Ne peuvent pas être désactivés.",
+    "analytics_title": "Cookies d'Analyse et de Performance",
+    "analytics_desc": "Nous permettent de mesurer et d'analyser la navigation des utilisateurs (Google Analytics, Clarity) afin d'améliorer les performances du site.",
+    "always_active": "Toujours actifs",
+    "privacy_policy": "Politique de Cookies"
   }
 }

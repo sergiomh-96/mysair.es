@@ -149,6 +149,13 @@ export function Footer() {
             <Link href="/politica-cookies" className="text-gray-400 hover:text-white transition-colors">
               {t("footer.cookies")}
             </Link>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event("open-cookie-settings"))}
+              className="text-gray-400 hover:text-white transition-colors cursor-pointer bg-transparent border-0 p-0 text-sm"
+            >
+              {t("cookies.settings")}
+            </button>
             <Link href="/politica-de-privacidad-app" className="text-gray-400 hover:text-white transition-colors">
               {t("footer.privacy_app")}
             </Link>

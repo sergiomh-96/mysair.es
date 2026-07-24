@@ -430,5 +430,21 @@
       "remote_image": "Original Remote Reference",
       "details": "Technical Specifications"
     }
+  },
+  "cookies": {
+    "title": "Use of Cookies",
+    "description": "We use our own and third-party cookies to ensure proper website functionality, analyze traffic, and enhance your browsing experience. You can accept all cookies, reject optional ones, or customize your preferences.",
+    "accept_all": "Accept all",
+    "reject_optional": "Only essential",
+    "settings": "Customize",
+    "more_info": "More info",
+    "settings_title": "Cookie Settings",
+    "save_preferences": "Save preferences",
+    "essential_title": "Essential & Technical Cookies",
+    "essential_desc": "Essential for the basic operation of the website, such as navigation and access to secure areas. Cannot be disabled.",
+    "analytics_title": "Analytics & Performance Cookies",
+    "analytics_desc": "Allow us to measure and analyze user browsing (Google Analytics, Clarity) to improve site performance and user experience.",
+    "always_active": "Always active",
+    "privacy_policy": "Cookie Policy"
   }
 }

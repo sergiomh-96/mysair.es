@@ -427,5 +427,21 @@
       "remote_image": "Immagine Telecomando",
       "details": "Dettagli Tecnici"
     }
+  },
+  "cookies": {
+    "title": "Uso dei Cookie",
+    "description": "Utilizziamo cookie propri e di terze parti per garantire il corretto funzionamento del sito, analizzare il traffico e migliorare la tua esperienza di navigazione. Puoi accettare tutti i cookie, rifiutare quelli opzionali o personalizzare le tue preferenze.",
+    "accept_all": "Accetta tutti",
+    "reject_optional": "Solo essenziali",
+    "settings": "Personalizza",
+    "more_info": "Maggiori informazioni",
+    "settings_title": "Impostazioni dei Cookie",
+    "save_preferences": "Salva preferenze",
+    "essential_title": "Cookie Tecnici ed Essenziali",
+    "essential_desc": "Sono essenziali per il funzionamento base del sito web, come la navigazione e l'accesso alle aree protette. Non possono essere disattivati.",
+    "analytics_title": "Cookie di Analisi e Prestazioni",
+    "analytics_desc": "Ci consentono di misurare e analizzare la navigazione degli utenti (Google Analytics, Clarity) per migliorare le prestazioni del sito.",
+    "always_active": "Sempre attivi",
+    "privacy_policy": "Informativa sui Cookie"
   }
 }
