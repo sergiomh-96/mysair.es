@@ -33,6 +33,8 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
+        {/* Referrer Policy — fallback meta tag (la cabecera HTTP va en el middleware) */}
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         {/* Google Consent Mode Default */}
         <script
           dangerouslySetInnerHTML={{

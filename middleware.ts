@@ -1,5 +1,44 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+// ── Security Headers ────────────────────────────────────────────────────────
+const CSP_DIRECTIVES = [
+  "default-src 'self'",
+  // Scripts: propios + inline (GTM/GA require 'unsafe-inline') + dominios de terceros autorizados
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://scripts.clarity.ms https://vercel.live https://va.vercel-scripts.com",
+  // Estilos: propios + inline (Tailwind/Radix) + Google Fonts
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  // Imágenes: propios + data URIs + blobs + dominios de analytics, Supabase, banderas e idioma
+  "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://*.google.com https://*.supabase.co https://lh3.googleusercontent.com https://flagcdn.com https://pagead2.googlesyndication.com",
+  // Fuentes: propias + Google Fonts
+  "font-src 'self' https://fonts.gstatic.com",
+  // Conexiones: propias + analytics + Google Ads + Supabase
+  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://*.supabase.co https://va.vercel-scripts.com https://vercel.live https://pagead2.googlesyndication.com",
+  // Iframes: solo GTM noscript
+  "frame-src 'self' https://www.googletagmanager.com",
+  // Protección contra clickjacking (reemplaza X-Frame-Options)
+  "frame-ancestors 'self'",
+  // Restricciones adicionales
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join("; ")
+
+const SECURITY_HEADERS: Record<string, string> = {
+  // CSP — Política de Seguridad de Contenido
+  "Content-Security-Policy": CSP_DIRECTIVES,
+  // HSTS — Fuerza HTTPS en todos los subdominios y solicita inclusión en listas de precarga
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  // Referrer — Envía solo el origen en peticiones cross-origin
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  // Previene MIME sniffing
+  "X-Content-Type-Options": "nosniff",
+  // OWASP recomienda 0 (la CSP ya cubre la protección contra XSS)
+  "X-XSS-Protection": "0",
+  // Permissions — Desactiva APIs de dispositivo y FLoC
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin-login"
@@ -84,7 +123,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return NextResponse.next()
+  // Aplicar cabeceras de seguridad a todas las respuestas
+  const response = NextResponse.next()
+  Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
+    response.headers.set(key, value)
+  })
+  return response
 }
 
 export const config = {
