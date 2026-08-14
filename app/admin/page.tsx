@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { Package, FileText, BookOpen, MessageSquare } from "lucide-react"
+import { Package, FileText, BookOpen, MessageSquare, Bell } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 
@@ -11,11 +11,13 @@ export default async function AdminDashboard() {
     { count: blogsCount },
     { count: messagesCount },
     { count: docsCount },
+    { count: popupsCount },
   ] = await Promise.all([
     supabase.from("products").select("*", { count: "exact", head: true }),
     supabase.from("blog_posts").select("*", { count: "exact", head: true }),
     supabase.from("contact_messages").select("*", { count: "exact", head: true }),
     supabase.from("external_links").select("*", { count: "exact", head: true }),
+    supabase.from("popup_notifications").select("*", { count: "exact", head: true }),
   ])
 
   const stats = [
@@ -23,6 +25,7 @@ export default async function AdminDashboard() {
     { title: "Documentación", value: docsCount ?? 0, icon: FileText, href: "/admin/documentacion", color: "text-emerald-600", bg: "bg-emerald-50" },
     { title: "Blogs", value: blogsCount ?? 0, icon: BookOpen, href: "/admin/blogs", color: "text-violet-600", bg: "bg-violet-50" },
     { title: "Mensajes", value: messagesCount ?? 0, icon: MessageSquare, href: "/admin/mensajes", color: "text-orange-600", bg: "bg-orange-50" },
+    { title: "Popups y Avisos", value: popupsCount ?? 0, icon: Bell, href: "/admin/popups", color: "text-pink-600", bg: "bg-pink-50" },
   ]
 
   return (

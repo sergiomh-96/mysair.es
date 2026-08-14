@@ -8,12 +8,10 @@ import { ClientTestimonials } from "@/components/client-testimonials"
 import { FaqsSection } from "@/components/faqs-section"
 import { Footer } from "@/components/footer"
 import { ScrollRevealWrapper } from "@/components/scroll-reveal-wrapper"
-import { PopupContainer } from "@/components/popup-container"
 
 export default function HomePage() {
   return (
     <main className="min-h-screen">
-      <PopupContainer />
       <Navigation />
       <HeroSection />
       <ScrollRevealWrapper direction="up">

@@ -1,23 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PopupNotification } from '@/components/popup-notification'
-import { getActivePopups } from '@/lib/actions/popup'
-
-interface PopupNotif {
-  id: string
-  title: string
-  description: string
-  image_url: string | null
-  is_active: boolean
-  start_date: string | null
-  end_date: string | null
-  max_views: number
-  interval_minutes: number
-}
+import { PopupNotification as PopupComponent } from '@/components/popup-notification'
+import { PopupNotification, getActivePopups } from '@/lib/actions/popup'
 
 export function PopupContainer() {
-  const [popups, setPopups] = useState<PopupNotif[]>([])
+  const [popups, setPopups] = useState<PopupNotification[]>([])
   const [sessionId, setSessionId] = useState<string>('')
   const [visiblePopups, setVisiblePopups] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -26,10 +14,11 @@ export function PopupContainer() {
     async function fetchPopups() {
       try {
         const { popups: activePopups, sessionId: sid } = await getActivePopups()
-        setPopups(activePopups)
+        // Only show modal popups that have show_as_popup set to true
+        const modalPopups = activePopups.filter((p) => p.show_as_popup !== false)
+        setPopups(modalPopups)
         setSessionId(sid)
-        // Initially show all eligible popups
-        setVisiblePopups(new Set(activePopups.map((p) => p.id)))
+        setVisiblePopups(new Set(modalPopups.map((p) => p.id)))
       } catch (error) {
         console.error('[v0] Error loading popups:', error)
       } finally {
@@ -57,7 +46,7 @@ export function PopupContainer() {
       {popups.map(
         (popup) =>
           visiblePopups.has(popup.id) && (
-            <PopupNotification
+            <PopupComponent
               key={popup.id}
               popup={popup}
               sessionId={sessionId}

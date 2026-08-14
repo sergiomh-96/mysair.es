@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronRight,
   ArrowLeftRight,
+  Bell,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/documentacion", label: "Documentación", icon: FileText },
   { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
   { href: "/admin/mensajes", label: "Mensajes", icon: MessageSquare },
+  { href: "/admin/popups", label: "Popups y Avisos", icon: Bell },
   { href: "/admin/redirects", label: "Redirecciones", icon: ArrowLeftRight },
 ]
 

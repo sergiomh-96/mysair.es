@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 
 import { I18nProvider } from "@/lib/i18n-context"
 import { CookieBanner } from "@/components/cookie-banner"
+import { PopupContainer } from "@/components/popup-container"
 
 export default function RootLayout({
   children,
@@ -86,6 +87,7 @@ export default function RootLayout({
         </noscript>
         <I18nProvider>
           <Suspense fallback={null}>{children}</Suspense>
+          <PopupContainer />
           <StickyContactButton />
           <CookieBanner />
         </I18nProvider>
