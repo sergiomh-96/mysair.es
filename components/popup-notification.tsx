@@ -38,13 +38,14 @@ export function PopupNotification({ popup, sessionId, onClose }: PopupNotificati
       }`}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden transform transition-transform duration-300 relative ${
-          isClosing ? 'scale-95' : 'scale-100'
+        className={`bg-white rounded-2xl shadow-2xl max-w-[412px] w-full overflow-hidden transform transition-all duration-300 relative border border-slate-200/80 ${
+          isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
         }`}
       >
-        {/* Image */}
+        {/* Image (605x378 aspect ratio preserved) */}
         {popup.image_url && (
-          <div className="w-full h-48 overflow-hidden bg-gray-200">
+          <div className="w-full aspect-[605/378] overflow-hidden bg-slate-100 relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={popup.image_url}
               alt={popup.title}
@@ -56,31 +57,34 @@ export function PopupNotification({ popup, sessionId, onClose }: PopupNotificati
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-3 right-3 p-1.5 bg-white/80 hover:bg-white rounded-full transition-colors z-10 shadow-sm"
+          className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors z-20 backdrop-blur-xs shadow-md"
           title="Cerrar"
+          aria-label="Cerrar aviso"
         >
-          <X className="h-5 w-5 text-gray-600" />
+          <X className="h-3.5 w-3.5" />
         </button>
 
         {/* Content */}
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-3 text-gray-900">{popup.title}</h2>
-          <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-line">{popup.description}</p>
+        <div className="p-4 sm:p-5">
+          <h2 className="text-[19px] font-bold mb-1.5 text-gray-900 tracking-tight leading-snug">{popup.title}</h2>
+          <p className="text-[13px] text-gray-600 mb-4 leading-relaxed whitespace-pre-line">{popup.description}</p>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {popup.link_url ? (
               <>
                 <Button
                   onClick={handleClose}
                   variant="outline"
-                  className="flex-1"
+                  size="sm"
+                  className="flex-1 h-9 text-[13px] font-semibold"
                 >
                   Cerrar
                 </Button>
                 <Button
                   asChild
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                  size="sm"
+                  className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold gap-1.5"
                 >
                   <Link
                     href={popup.link_url}
@@ -89,14 +93,15 @@ export function PopupNotification({ popup, sessionId, onClose }: PopupNotificati
                     rel={popup.link_url.startsWith('http') ? 'noopener noreferrer' : undefined}
                   >
                     <span>Acceder</span>
-                    <ExternalLink className="h-4 w-4" />
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
               </>
             ) : (
               <Button
                 onClick={handleClose}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+                className="w-full h-9 bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-semibold"
               >
                 Aceptar
               </Button>

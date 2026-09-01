@@ -590,7 +590,18 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
             )}
           </div>
 
-          <SolicitarPresupuestoBtn productSlug={product.slug} />
+          <SolicitarPresupuestoBtn
+            productName={product.name}
+            productSlug={product.slug}
+            variant={selectedVariant}
+            dimension={selectedDimension}
+            vias={selectedLinesVias}
+            color={selectedColor}
+            insulation={selectedInsulation}
+            communication={selectedCommunication}
+            reference={productReference || undefined}
+            hasVariants={Boolean(product.variants && product.variants.length > 0)}
+          />
 
           {productReference && (
             <Card className="bg-blue-50 border-blue-200">
@@ -633,13 +644,42 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
               <CardTitle>{t("products.detail.specs")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {Object.entries(product.technical_specs).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-                    <span className="font-medium text-gray-700 capitalize">{key.replace(/_/g, " ")}:</span>
-                    <span className="text-gray-600 text-right">
-                      {Array.isArray(value) ? value.join(", ") : String(value)}
+                  <div
+                    key={key}
+                    className="flex flex-col items-start text-left py-2.5 px-3.5 rounded-lg bg-gray-50/70 border border-gray-100/80 hover:border-gray-200 transition-colors"
+                  >
+                    <span className="font-semibold text-gray-900 text-sm mb-0.5 capitalize text-left block">
+                      {key.replace(/_/g, " ")}
                     </span>
+                    <div className="text-gray-600 text-sm text-left w-full">
+                      {Array.isArray(value) ? (
+                        <ul className="space-y-0.5 text-left list-none p-0 m-0">
+                          {value.map((item, idx) => (
+                            <li key={idx} className="text-left flex items-start gap-1.5">
+                              <span className="text-blue-500 font-bold select-none text-xs leading-5">•</span>
+                              <span className="leading-snug">{String(item).replace(/^-\s*/, "")}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : typeof value === "string" && value.includes("\n") ? (
+                        <div className="space-y-0.5 text-left">
+                          {value.split("\n").map((line, idx) => (
+                            <div key={idx} className="text-left flex items-start gap-1.5">
+                              {line.trim().startsWith("-") && (
+                                <span className="text-blue-500 font-bold select-none text-xs leading-5">•</span>
+                              )}
+                              <span className="leading-snug">{line.trim().replace(/^-\s*/, "")}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-left text-gray-600 leading-snug m-0">
+                          {String(value).replace(/^-\s*/, "")}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

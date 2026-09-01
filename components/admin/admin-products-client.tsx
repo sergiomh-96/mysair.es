@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Pencil, Trash2, Video, AlertTriangle } from "lucide-react"
-import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo, bulkImportProducts } from "@/lib/actions/admin-products"
+import { Plus, Pencil, Trash2, Video, AlertTriangle, Copy } from "lucide-react"
+import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo, bulkImportProducts, duplicateProduct } from "@/lib/actions/admin-products"
 import { useRouter } from "next/navigation"
 import { DocumentListField } from "./document-list-field"
 import { StringListField } from "./string-list-field"
@@ -147,6 +147,19 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
     })
   }
 
+  async function handleDuplicateProduct(id: number) {
+    startTransition(async () => {
+      try {
+        const res = await duplicateProduct(id)
+        toast.success(`Producto duplicado: ${res.name}`)
+        router.refresh()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error al duplicar el producto"
+        toast.error(msg)
+      }
+    })
+  }
+
   const productTemplateHeaders = [
     "name",
     "slug",
@@ -251,6 +264,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
+              <TableHead className="w-16 text-center">Nº Orden</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Slug</TableHead>
@@ -262,10 +276,15 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
           </TableHeader>
           <TableBody>
             {products.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-slate-400 py-10">No hay productos</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-slate-400 py-10">No hay productos</TableCell></TableRow>
             )}
             {products.map((p) => (
               <TableRow key={p.id} className="hover:bg-slate-50">
+                <TableCell className="text-center font-mono font-semibold text-xs text-slate-600 bg-slate-50/50">
+                  <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-2xs">
+                    {p.sort_order ?? 0}
+                  </span>
+                </TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">{p.category}</Badge>
@@ -287,10 +306,13 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEditProduct(p)}>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleDuplicateProduct(p.id)} title="Duplicar producto" disabled={isPending}>
+                      <Copy className="h-4 w-4 text-blue-600" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEditProduct(p)} title="Editar producto">
                       <Pencil className="h-4 w-4 text-slate-500" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDeleteDialog({ type: "product", id: p.id })}>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDeleteDialog({ type: "product", id: p.id })} title="Eliminar producto">
                       <Trash2 className="h-4 w-4 text-red-400" />
                     </Button>
                   </div>
@@ -529,7 +551,23 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
             </Tabs>
 
             {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 gap-2 flex-wrap">
+              {editingProduct && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    const prodId = editingProduct.id
+                    setProductDialog(false)
+                    handleDuplicateProduct(prodId)
+                  }}
+                  disabled={isPending}
+                  className="mr-auto gap-1.5 text-blue-600 border-blue-200 hover:bg-blue-50 text-xs font-semibold"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Duplicar producto
+                </Button>
+              )}
               <Button type="button" variant="outline" onClick={() => setProductDialog(false)}>Cancelar</Button>
               <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
                 {isPending ? "Guardando..." : "Guardar"}

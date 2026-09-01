@@ -142,6 +142,65 @@ export async function bulkImportProducts(productsList: Record<string, unknown>[]
   return { count: successCount }
 }
 
+export async function duplicateProduct(id: number) {
+  const supabase = await createServerClient()
+  const { data: original, error: fetchErr } = await supabase
+    .from("products")
+    .select("*, product_videos(*)")
+    .eq("id", id)
+    .single()
+
+  if (fetchErr || !original) {
+    throw new Error("No se pudo encontrar el producto a duplicar.")
+  }
+
+  // Generate unique slug
+  const baseSlug = `${original.slug}-copia`
+  let candidateSlug = baseSlug
+  let counter = 1
+  while (true) {
+    const { data: exists } = await supabase.from("products").select("id").eq("slug", candidateSlug).single()
+    if (!exists) break
+    counter++
+    candidateSlug = `${baseSlug}-${counter}`
+  }
+
+  const { id: _origId, created_at: _c, updated_at: _u, product_videos, ...rest } = original
+
+  const newProductPayload = {
+    ...rest,
+    name: `${original.name} (Copia)`,
+    slug: candidateSlug,
+    sort_order: (original.sort_order ?? 0) + 1,
+  }
+
+  const { data: inserted, error: insertErr } = await supabase
+    .from("products")
+    .insert(newProductPayload)
+    .select("id")
+    .single()
+
+  if (insertErr || !inserted) {
+    throw insertErr || new Error("Error al duplicar el producto")
+  }
+
+  // Clone videos if any
+  if (product_videos && Array.isArray(product_videos) && product_videos.length > 0) {
+    const videoPayloads = product_videos.map((v: Record<string, unknown>) => ({
+      product_id: inserted.id,
+      title: v.title,
+      youtube_url: v.youtube_url,
+      description: v.description,
+      sort_order: v.sort_order,
+    }))
+    await supabase.from("product_videos").insert(videoPayloads)
+  }
+
+  revalidatePath("/admin/productos")
+  revalidatePath("/productos")
+  return { id: inserted.id, name: newProductPayload.name }
+}
+
 export async function deleteProduct(id: number) {
   const supabase = await createServerClient()
   const { error } = await supabase.from("products").delete().eq("id", id)

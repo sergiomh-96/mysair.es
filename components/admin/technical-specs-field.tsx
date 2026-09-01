@@ -9,7 +9,7 @@ import { Plus, Trash2, Cpu, GripVertical } from "lucide-react"
 
 export interface TechnicalSpecEntry {
   title: string
-  items: string // Multi-line text or dash-separated
+  items: string // Multi-line text with auto dash - prefix
 }
 
 interface TechnicalSpecsFieldProps {
@@ -19,6 +19,22 @@ interface TechnicalSpecsFieldProps {
   initialValue?: unknown
   addButtonText?: string
   emptyText?: string
+}
+
+function ensureDashes(text: string): string {
+  if (!text) return ""
+  return text
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trimStart()
+      if (!trimmed) return ""
+      if (trimmed.startsWith("-")) {
+        // Ensure space after dash: "-Texto" -> "- Texto"
+        return trimmed.startsWith("- ") ? trimmed : `- ${trimmed.slice(1).trimStart()}`
+      }
+      return `- ${trimmed}`
+    })
+    .join("\n")
 }
 
 function parseInitialSpecs(value: unknown): TechnicalSpecEntry[] {
@@ -35,7 +51,6 @@ function parseInitialSpecs(value: unknown): TechnicalSpecEntry[] {
         if (lines.length > 1) {
           itemsText = lines.map((l) => (l.startsWith("-") ? l : `- ${l}`)).join("\n")
         } else if (v.includes(",")) {
-          // If was separated by commas, convert to dashes
           itemsText = v.split(",").map((s) => `- ${s.trim()}`).join("\n")
         } else {
           itemsText = v.startsWith("-") ? v : `- ${v}`
@@ -89,9 +104,9 @@ function parseInitialSpecs(value: unknown): TechnicalSpecEntry[] {
 export function TechnicalSpecsField({
   name,
   label = "Especificaciones técnicas",
-  description = "Define cada especificación con título y sus detalles (un guion por cada punto)",
+  description = "Define cada especificación con título y sus detalles (el guion - se autogenera en cada línea)",
   initialValue,
-  addButtonText = "Añadir especificación",
+  addButtonText = "Añadir bloque de especificaciones",
   emptyText = "No hay especificaciones técnicas añadidas.",
 }: TechnicalSpecsFieldProps) {
   const [entries, setEntries] = useState<TechnicalSpecEntry[]>(() => parseInitialSpecs(initialValue))
@@ -116,7 +131,60 @@ export function TechnicalSpecsField({
     setEntries((prev) => prev.filter((_, i) => i !== index))
   }
 
-  // Serialize to an Object where each key has array of items or cleanly dash-separated string
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, idx: number) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      const target = e.currentTarget
+      const start = target.selectionStart
+      const end = target.selectionEnd
+      const value = target.value
+
+      // Find beginning of the current line
+      const lineStart = value.lastIndexOf("\n", start - 1) + 1
+      const currentLine = value.slice(lineStart, start).trim()
+
+      // If pressing enter on an empty bullet line, remove bullet
+      if (currentLine === "-" || currentLine === "- ") {
+        const newValue = value.slice(0, lineStart) + value.slice(end)
+        updateEntry(idx, "items", newValue)
+        setTimeout(() => {
+          target.selectionStart = target.selectionEnd = lineStart
+        }, 0)
+        return
+      }
+
+      // Automatically insert newline with dash prefix
+      const newValue = value.substring(0, start) + "\n- " + value.substring(end)
+      updateEntry(idx, "items", newValue)
+
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 3
+      }, 0)
+    }
+  }
+
+  const handleFocus = (e: React.FocusEvent<HTMLTextAreaElement>, idx: number) => {
+    if (!e.target.value.trim()) {
+      updateEntry(idx, "items", "- ")
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = 2
+      }, 0)
+    }
+  }
+
+  const handleBlur = (idx: number) => {
+    // Clean up on blur: ensure each non-empty line starts with "- "
+    setEntries((prev) => {
+      const updated = [...prev]
+      const currentItems = updated[idx]?.items
+      if (currentItems) {
+        updated[idx] = { ...updated[idx], items: ensureDashes(currentItems) }
+      }
+      return updated
+    })
+  }
+
+  // Serialize to an Object where each key has array of items
   const serializedObject: Record<string, string[]> = {}
   entries.forEach((e) => {
     const title = e.title.trim()
@@ -192,15 +260,23 @@ export function TechnicalSpecsField({
               </div>
 
               <div className="space-y-1 pl-5">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                  Detalles y valores (un guion - por cada línea)
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                    Detalles y valores (un guion por cada línea, autogenerado)
+                  </span>
+                  <span className="text-[10px] text-blue-600 font-medium">
+                    Pulsa Enter para nueva línea con guion
+                  </span>
+                </div>
                 <Textarea
                   placeholder={`- 230V AC ±10% / 50 Hz\n- Consumo en reposo: < 0.5W\n- Fusible térmico integrado`}
                   value={entry.items}
                   onChange={(e) => updateEntry(idx, "items", e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, idx)}
+                  onFocus={(e) => handleFocus(e, idx)}
+                  onBlur={() => handleBlur(idx)}
                   rows={3}
-                  className="text-xs font-mono bg-slate-50/50 focus:bg-white"
+                  className="text-xs font-mono bg-slate-50/50 focus:bg-white leading-relaxed"
                 />
               </div>
             </div>

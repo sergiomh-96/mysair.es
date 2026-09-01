@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox"
 import { Send, CheckCircle, Paperclip, X, Upload } from "lucide-react"
 import { submitContactForm } from "@/lib/actions/contact"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useI18n } from "@/lib/i18n-context"
 
@@ -23,6 +24,7 @@ declare global {
 
 export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: string }) {
   const { t } = useI18n()
+  const searchParams = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -33,6 +35,26 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
   const [formError, setFormError] = useState<string>("")
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false)
   const [perfilCliente, setPerfilCliente] = useState("")
+  const [inquiryType, setInquiryType] = useState("general")
+  const [message, setMessage] = useState("")
+
+  useEffect(() => {
+    const rawTipo = searchParams.get("tipo") || searchParams.get("inquiry_type")
+    const rawMsg = searchParams.get("mensaje") || searchParams.get("message")
+    const interes = searchParams.get("interes")
+
+    if (rawTipo === "quote" || rawTipo === "presupuesto" || interes || rawMsg) {
+      setInquiryType("quote")
+    } else if (rawTipo) {
+      setInquiryType(rawTipo)
+    }
+
+    if (rawMsg) {
+      setMessage(rawMsg)
+    } else if (interes) {
+      setMessage(`Hola, solicito precio y presupuesto sobre el siguiente artículo: ${interes}`)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     // Only load reCAPTCHA if a valid site key is configured
@@ -222,8 +244,8 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
 
           <div className="space-y-2">
             <Label htmlFor="inquiry_type">{t("contact.form.inquiry_type")}</Label>
-            <Select name="inquiry_type" required>
-              <SelectTrigger>
+            <Select name="inquiry_type" value={inquiryType} onValueChange={setInquiryType} required>
+              <SelectTrigger id="inquiry_type">
                 <SelectValue placeholder={t("contact.form.inquiry_placeholder")} />
               </SelectTrigger>
               <SelectContent>
@@ -241,8 +263,10 @@ export function ContactForm({ recaptchaSiteKey = "" }: { recaptchaSiteKey?: stri
             <Textarea
               id="message"
               name="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               required
-              rows={5}
+              rows={6}
               placeholder={t("contact.form.message_placeholder")}
             />
           </div>

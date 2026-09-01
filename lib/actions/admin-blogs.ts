@@ -66,6 +66,82 @@ export async function upsertBlog(formData: FormData) {
   revalidatePath("/blog")
 }
 
+function extractSectionsFromItem(item: Record<string, unknown>): Array<{ id: string; level: "h2" | "h3"; title: string; content: string }> | null {
+  const sectionsList: Array<{ id: string; level: "h2" | "h3"; title: string; content: string }> = []
+
+  // Check numbered section columns up to 10 sections
+  for (let i = 1; i <= 10; i++) {
+    const levelRaw = String(
+      item[`seccion_${i}_nivel`] || 
+      item[`seccion_${i}_tipo`] || 
+      item[`Seccion_${i}_Nivel`] || 
+      item[`Seccion_${i}_Tipo`] || 
+      item[`seccion_${i}_tag`] || 
+      item[`h2_${i}_titulo`] ? "h2" : item[`h3_${i}_titulo`] ? "h3" : ""
+    ).toLowerCase().trim()
+
+    const title = String(
+      item[`seccion_${i}_titulo`] || 
+      item[`Seccion_${i}_Titulo`] || 
+      item[`seccion_${i}_title`] || 
+      item[`h2_${i}_titulo`] || 
+      item[`h3_${i}_titulo`] || 
+      ""
+    ).trim()
+
+    const content = String(
+      item[`seccion_${i}_contenido`] || 
+      item[`Seccion_${i}_Contenido`] || 
+      item[`seccion_${i}_content`] || 
+      item[`h2_${i}_contenido`] || 
+      item[`h3_${i}_contenido`] || 
+      ""
+    ).trim()
+
+    if (title || content) {
+      const level: "h2" | "h3" = levelRaw.includes("3") || levelRaw === "h3" ? "h3" : "h2"
+      sectionsList.push({
+        id: `sec-${i}-${Math.random().toString(36).substring(2, 7)}`,
+        level,
+        title,
+        content,
+      })
+    }
+  }
+
+  if (sectionsList.length > 0) {
+    return sectionsList
+  }
+
+  // Fallback: check json in sections or secciones
+  const rawSections = item.sections || item.secciones || item.Secciones
+  if (rawSections) {
+    if (Array.isArray(rawSections)) {
+      return rawSections.map((s, idx) => ({
+        id: s.id || `sec-${idx + 1}`,
+        level: s.level === "h3" ? "h3" : "h2",
+        title: String(s.title || ""),
+        content: String(s.content || ""),
+      }))
+    }
+    if (typeof rawSections === "string") {
+      try {
+        const parsed = JSON.parse(rawSections)
+        if (Array.isArray(parsed)) {
+          return parsed.map((s, idx) => ({
+            id: s.id || `sec-${idx + 1}`,
+            level: s.level === "h3" ? "h3" : "h2",
+            title: String(s.title || ""),
+            content: String(s.content || ""),
+          }))
+        }
+      } catch {}
+    }
+  }
+
+  return null
+}
+
 export async function bulkImportBlogs(blogsList: Record<string, unknown>[]) {
   const supabase = await createServerClient()
   if (!blogsList || blogsList.length === 0) {
@@ -76,7 +152,6 @@ export async function bulkImportBlogs(blogsList: Record<string, unknown>[]) {
     const title = String(item.title || item.titulo || item.Titulo || "").trim()
     const slug = String(item.slug || item.Slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `blog-${idx + 1}`).trim()
     const excerpt = item.excerpt || item.extracto || item.Extracto ? String(item.excerpt || item.extracto || item.Extracto) : null
-    const content = String(item.content || item.contenido || item.Contenido || title).trim()
     const summary = item.summary || item.resumen || item.Resumen ? String(item.summary || item.resumen || item.Resumen) : null
     const author = String(item.author || item.autor || item.Autor || "MYSAir").trim()
     const category = item.category || item.categoria || item.Categoria ? String(item.category || item.categoria || item.Categoria) : null
@@ -92,13 +167,14 @@ export async function bulkImportBlogs(blogsList: Record<string, unknown>[]) {
     const meta_keywords = item.meta_keywords ? String(item.meta_keywords) : null
     const canonical_url = item.canonical_url ? String(item.canonical_url) : null
 
-    let sections = null
-    const sectionsRaw = item.sections || item.secciones
-    if (sectionsRaw) {
-      if (typeof sectionsRaw === "object") sections = sectionsRaw
-      else if (typeof sectionsRaw === "string") {
-        try { sections = JSON.parse(sectionsRaw) } catch {}
-      }
+    const sections = extractSectionsFromItem(item)
+
+    let content = String(item.content || item.contenido || item.Contenido || "").trim()
+    if (!content && sections && sections.length > 0) {
+      // Auto build markdown content if only sections provided
+      content = sections.map((s) => `## ${s.title}\n\n${s.content}`).join("\n\n")
+    } else if (!content) {
+      content = title
     }
 
     return {
