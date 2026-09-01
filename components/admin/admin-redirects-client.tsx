@@ -235,7 +235,7 @@ export function AdminRedirectsClient({ redirects: initial }: { redirects: Redire
 
       {/* Form Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl md:max-w-3xl w-full">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar redirección" : "Nueva redirección"}</DialogTitle>
           </DialogHeader>

@@ -13,7 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Pencil, Trash2, AlertTriangle, Globe, ChevronDown, ChevronUp, X } from "lucide-react"
-import { upsertBlog, deleteBlog } from "@/lib/actions/admin-blogs"
+import { upsertBlog, deleteBlog, bulkImportBlogs } from "@/lib/actions/admin-blogs"
+import { BulkExcelImport } from "./bulk-excel-import"
 import { toast } from "sonner"
 
 type Section = {
@@ -207,16 +208,92 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
     return new Date(dateStr).toISOString().split("T")[0]
   }
 
+  const blogTemplateHeaders = [
+    "title",
+    "slug",
+    "excerpt",
+    "content",
+    "summary",
+    "author",
+    "category",
+    "tags",
+    "published",
+    "featured",
+    "reading_time",
+    "route_type",
+    "image_url",
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "canonical_url",
+  ]
+
+  const blogTemplateSampleData = [
+    {
+      title: "Guía de Eficiencia Energética en Sistemas de Climatización por Zonas",
+      slug: "guia-eficiencia-climatizacion-zonas",
+      excerpt: "Descubre cómo reducir el consumo energético hasta un 30% mediante zonificación inteligente y difusión optimizada.",
+      content: "En la actualidad, la optimización energética es un factor clave en el diseño de instalaciones HVAC en viviendas y locales comerciales. La zonificación permite adaptar la climatización a las necesidades reales de cada estancia.",
+      summary: "La zonificación y la selección correcta de difusores permiten un ahorro significativo y mejor confort térmico.",
+      author: "Equipo Técnico MYSAir",
+      category: "Eficiencia Energética",
+      tags: "HVAC, Zonificación, Ahorro Energético, Difusión",
+      published: true,
+      featured: true,
+      reading_time: 5,
+      route_type: "blogs",
+      image_url: "https://mysair.es/images/blog/eficiencia-zonas.jpg",
+      meta_title: "Eficiencia Energética en Climatización | MYSAir",
+      meta_description: "Aprende las claves para optimizar tus sistemas de aire acondicionado y ahorrar energía.",
+      meta_keywords: "climatizacion, zonificacion, rejillas, difusores, ahorro energetico",
+      canonical_url: "https://mysair.es/blogs/guia-eficiencia-climatizacion-zonas",
+    },
+    {
+      title: "Ventajas de las Rejillas Ocultas en Techos Continuos",
+      slug: "ventajas-rejillas-ocultas-techos-continuos",
+      excerpt: "Análisis arquitectónico y técnico de la integración de rejillas invisibles en diseño de interiores.",
+      content: "Las rejillas ocultas representan la fusión perfecta entre diseño arquitectónico minimalista y rendimiento aerodinámico superior.",
+      summary: "Integración estética sin renunciar a caudales y confort acústico.",
+      author: "MYSAir",
+      category: "Diseño & Arquitectura",
+      tags: "Arquitectura, Rejillas Lineales, Difusión",
+      published: true,
+      featured: false,
+      reading_time: 4,
+      route_type: "blogs",
+      image_url: "https://mysair.es/images/blog/rejillas-ocultas.jpg",
+      meta_title: "Rejillas Ocultas en Techos Continuos | MYSAir",
+      meta_description: "Descubre cómo integrar climatización invisible en proyectos de arquitectura premium.",
+      meta_keywords: "rejillas ocultas, techos continuos, difusor lineal, interiorismo",
+      canonical_url: "https://mysair.es/blogs/ventajas-rejillas-ocultas-techos-continuos",
+    },
+  ]
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Blogs</h1>
           <p className="text-slate-500 text-sm mt-1">{initialBlogs.length} artículos en total</p>
         </div>
-        <Button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 gap-2">
-          <Plus className="h-4 w-4" /> Nuevo artículo
-        </Button>
+        <div className="flex items-center gap-2.5">
+          <BulkExcelImport
+            title="Importación Masiva de Artículos de Blog"
+            description="Sube un archivo Excel (.xlsx/.csv) para crear o actualizar artículos de blog de forma masiva"
+            templateFilename="plantilla_blogs_mysair"
+            templateHeaders={blogTemplateHeaders}
+            templateSampleData={blogTemplateSampleData}
+            onImport={async (rows) => {
+              const res = await bulkImportBlogs(rows)
+              router.refresh()
+              return res
+            }}
+            triggerLabel="Importar Excel"
+          />
+          <Button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 gap-2 shadow-2xs">
+            <Plus className="h-4 w-4" /> Nuevo artículo
+          </Button>
+        </div>
       </div>
 
       <Card className="border border-slate-200">
@@ -275,7 +352,7 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
 
       {/* Blog Dialog */}
       <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl sm:max-w-6xl w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar artículo" : "Nuevo artículo"}</DialogTitle>
           </DialogHeader>

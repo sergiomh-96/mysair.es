@@ -26,6 +26,21 @@ export async function addDocLink(formData: FormData) {
   revalidatePath("/admin/documentacion")
 }
 
+export async function updateDocLink(formData: FormData) {
+  const supabase = await createServerClient()
+  const id = Number(formData.get("id"))
+  if (!id) throw new Error("ID de enlace no proporcionado")
+
+  const { error } = await supabase.from("external_links").update({
+    name: formData.get("name"),
+    url: formData.get("url"),
+    description: formData.get("description") || null,
+    type: formData.get("type") || "documentation",
+  }).eq("id", id)
+  if (error) throw error
+  revalidatePath("/admin/documentacion")
+}
+
 export async function deleteDocLink(id: number) {
   const supabase = await createServerClient()
   const { error } = await supabase.from("external_links").delete().eq("id", id)

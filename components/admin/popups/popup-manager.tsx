@@ -20,10 +20,12 @@ import {
   ExternalLink,
   CheckCircle2,
   XCircle,
-  Eye,
-  Calendar,
-  Clock,
+  ImageIcon,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface PopupManagerProps {
   initialPopups: PopupNotification[]
@@ -102,14 +104,16 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
       if (editingPopup) {
         const updated = await updatePopup(editingPopup.id, payload)
         setPopups((prev) => prev.map((p) => (p.id === editingPopup.id ? updated : p)))
+        toast.success("Aviso actualizado correctamente")
       } else {
         const created = await createPopup(payload)
         setPopups((prev) => [created, ...prev])
+        toast.success("Aviso creado correctamente")
       }
 
       setIsFormOpen(false)
-    } catch (error) {
-      alert('Error guardando la notificación')
+    } catch {
+      toast.error('Error guardando la notificación')
     } finally {
       setIsSubmitting(false)
     }
@@ -121,8 +125,9 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
     try {
       await deletePopup(id)
       setPopups((prev) => prev.filter((p) => p.id !== id))
-    } catch (error) {
-      alert('Error al eliminar')
+      toast.success("Aviso eliminado correctamente")
+    } catch {
+      toast.error('Error al eliminar')
     }
   }
 
@@ -136,23 +141,35 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
 
     try {
       await togglePopupField(id, field, nextVal)
-    } catch (error) {
+      if (field === 'is_active') {
+        toast.success(nextVal ? "Aviso activado (Visible)" : "Aviso desactivado (Pausado)")
+      } else if (field === 'show_as_popup') {
+        toast.success(nextVal ? "Ventana emergente activada" : "Ventana emergente desactivada")
+      } else {
+        toast.success(nextVal ? "Barra superior activada" : "Barra superior desactivada")
+      }
+    } catch {
       // Revert if error
       setPopups((prev) => prev.map((p) => (p.id === id ? { ...p, [field]: currentValue } : p)))
-      alert('Error actualizando el estado')
+      toast.error('Error actualizando el estado')
     }
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Gestión de Popups y Avisos</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900">Gestión de Popups y Avisos</h1>
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              {popups.length} configurados
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1">
             Configura ventanas emergentes y barras de aviso superiores para los visitantes.
           </p>
         </div>
-        <Button onClick={openCreateModal} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+        <Button onClick={openCreateModal} className="bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-2xs">
           <Plus className="h-4 w-4" />
           <span>Crear Aviso / Popup</span>
         </Button>
@@ -161,7 +178,7 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
       {/* List */}
       <div className="grid grid-cols-1 gap-4">
         {popups.length === 0 ? (
-          <div className="bg-white rounded-xl border p-12 text-center">
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
             <Bell className="h-12 w-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-600 font-medium">No hay notificaciones creadas.</p>
             <p className="text-slate-400 text-sm mt-1">
@@ -173,17 +190,50 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
             <div
               key={popup.id}
               className={`bg-white rounded-xl border transition-all p-5 ${
-                popup.is_active ? 'border-slate-200 shadow-sm' : 'border-slate-200 opacity-60 bg-slate-50'
+                popup.is_active
+                  ? 'border-slate-200 shadow-xs'
+                  : 'border-slate-200 opacity-75 bg-slate-50/70'
               }`}
             >
-              <div className="flex flex-col md:flex-row gap-5 items-start justify-between">
+              <div className="flex flex-col md:flex-row gap-5 items-start">
+                {/* Image Thumbnail to the left */}
+                <div className="w-full md:w-32 h-28 md:h-28 rounded-lg border border-slate-200 bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center relative group">
+                  {popup.image_url ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={popup.image_url}
+                        alt={popup.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          ;(e.target as HTMLElement).style.display = 'none'
+                        }}
+                      />
+                      <a
+                        href={popup.image_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold transition-opacity"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" /> Ver imagen
+                      </a>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-400 gap-1 text-center p-2">
+                      <ImageIcon className="h-6 w-6 text-slate-300" />
+                      <span className="text-[10px] text-slate-400">Sin imagen</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
                 <div className="space-y-2 flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold text-slate-900 text-lg">{popup.title}</h3>
                     <span
                       className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                         popup.is_active
-                          ? 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                           : 'bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -193,7 +243,7 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                         </>
                       ) : (
                         <>
-                          <XCircle className="h-3 w-3" /> Inactivo
+                          <XCircle className="h-3 w-3" /> Inactivo / Pausado
                         </>
                       )}
                     </span>
@@ -221,7 +271,7 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                       }`}
                     >
                       <LayoutTemplate className="h-3.5 w-3.5" />
-                      Ventana Emergente: {popup.show_as_popup ? 'SI' : 'NO'}
+                      Ventana Emergente: {popup.show_as_popup ? 'SÍ' : 'NO'}
                     </button>
 
                     <button
@@ -233,42 +283,56 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                       }`}
                     >
                       <Bell className="h-3.5 w-3.5" />
-                      Barra Superior: {popup.show_as_banner ? 'SI' : 'NO'}
-                    </button>
-
-                    <button
-                      onClick={() => handleToggle(popup.id, 'is_active', popup.is_active)}
-                      className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-md border transition-colors ${
-                        popup.is_active
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                          : 'bg-slate-100 text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      Estado: {popup.is_active ? 'Publicado' : 'Borrador'}
+                      Barra Superior: {popup.show_as_banner ? 'SÍ' : 'NO'}
                     </button>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                {/* Direct Actions (including activate/deactivate button) */}
+                <div className="flex flex-col sm:flex-row md:flex-col items-end gap-2 self-stretch md:self-center shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                  {/* Direct Toggle Button */}
                   <Button
-                    variant="outline"
+                    variant={popup.is_active ? 'outline' : 'default'}
                     size="sm"
-                    onClick={() => openEditModal(popup)}
-                    className="gap-1.5"
+                    onClick={() => handleToggle(popup.id, 'is_active', popup.is_active)}
+                    className={`w-full sm:w-auto md:w-36 justify-center gap-1.5 text-xs font-semibold ${
+                      popup.is_active
+                        ? 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
                   >
-                    <Edit2 className="h-3.5 w-3.5" />
-                    Editar
+                    {popup.is_active ? (
+                      <>
+                        <ToggleRight className="h-4 w-4 text-emerald-600" />
+                        Desactivar
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="h-4 w-4" />
+                        Activar aviso
+                      </>
+                    )}
                   </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(popup.id)}
-                    className="gap-1.5"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Eliminar
-                  </Button>
+
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto md:w-36 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditModal(popup)}
+                      className="gap-1 text-xs flex-1"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(popup.id)}
+                      className="gap-1 text-xs px-2.5"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -276,37 +340,59 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
         )}
       </div>
 
-      {/* Create / Edit Modal */}
+      {/* Create / Edit Modal (Widened 50% to max-w-4xl / max-w-5xl) */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl sm:max-w-4xl md:max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 my-8 border border-slate-200">
             <div className="flex justify-between items-center border-b pb-4">
-              <h2 className="text-xl font-bold text-slate-900">
-                {editingPopup ? 'Editar Notificación' : 'Nueva Notificación'}
-              </h2>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">
+                    {editingPopup ? 'Editar Notificación' : 'Nueva Notificación'}
+                  </h2>
+                  <p className="text-xs text-slate-500">Configura el diseño, ubicación y programación</p>
+                </div>
+              </div>
               <button
                 onClick={() => setIsFormOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Título de la Notificación *
-                </label>
-                <Input
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ej: Oferta Especial o Aviso Importante"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Título de la Notificación *
+                  </label>
+                  <Input
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ej: Oferta Especial o Aviso Importante"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    URL de la Imagen
+                  </label>
+                  <Input
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://ejemplo.com/banner.jpg"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   Descripción (Texto a mostrar en la barra o emergente) *
                 </label>
                 <Textarea
@@ -318,104 +404,69 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  Enlace del Botón "Acceder" (Opcional)
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  URL del Enlace (Opcional - Añade un botón "Acceder")
                 </label>
                 <Input
+                  type="url"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="Ej: https://mysair.es/contacto o /productos"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Si se especifica, se agregará un botón "Acceder" con este enlace.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">
-                  URL de Imagen (Opcional, para la ventana emergente)
-                </label>
-                <Input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Ej: /images/popup-promo.jpg"
+                  placeholder="https://mysair.es/productos/... o enlace externo"
                 />
               </div>
 
-              {/* Display Options */}
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
-                <label className="block text-sm font-bold text-slate-800">
-                  Modo de Visualización (Selecciona uno o ambos)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:bg-slate-100/50">
+              {/* Formatos de visualización */}
+              <div className="p-4 rounded-lg border border-slate-200 bg-slate-50/50 space-y-3">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                  Formatos de Visualización
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-slate-300">
                     <input
                       type="checkbox"
                       checked={showAsPopup}
                       onChange={(e) => setShowAsPopup(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <div>
-                      <span className="font-semibold text-slate-900 text-sm block">
-                        Ventana Emergente (Modal)
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        Pop-up en el centro de la pantalla
-                      </span>
+                    <div className="text-xs">
+                      <p className="font-semibold text-slate-800">Ventana Emergente</p>
+                      <p className="text-slate-500 text-[11px]">Modal central en pantalla</p>
                     </div>
                   </label>
 
-                  <label className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:bg-slate-100/50">
+                  <label className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-slate-300">
                     <input
                       type="checkbox"
                       checked={showAsBanner}
                       onChange={(e) => setShowAsBanner(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <div>
-                      <span className="font-semibold text-slate-900 text-sm block">
-                        Barra Superior (Banner)
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        Barra azul/roja bajo el menú de navegación
-                      </span>
+                    <div className="text-xs">
+                      <p className="font-semibold text-slate-800">Barra Superior</p>
+                      <p className="text-slate-500 text-[11px]">Cinta de aviso en cabecera</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={isActive}
+                      onChange={(e) => setIsActive(e.target.checked)}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <div className="text-xs">
+                      <p className="font-semibold text-slate-800">Publicado y Activo</p>
+                      <p className="text-slate-500 text-[11px]">Visible para visitantes</p>
                     </div>
                   </label>
                 </div>
               </div>
 
-              {/* Status & Frequency */}
+              {/* Programación */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">
-                    Vistas Máximas por Usuario (0 = Ilimitado)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={maxViews}
-                    onChange={(e) => setMaxViews(Number(e.target.value))}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">
-                    Intervalo entre Vistas (minutos, 0 = 1 vez)
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={intervalMinutes}
-                    onChange={(e) => setIntervalMinutes(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Fecha de Inicio (Opcional)
                   </label>
                   <Input
@@ -425,8 +476,8 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Fecha de Fin (Opcional)
                   </label>
                   <Input
@@ -437,33 +488,25 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
-                <input
-                  type="checkbox"
-                  id="is_active_check"
-                  checked={isActive}
-                  onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded"
-                />
-                <label htmlFor="is_active_check" className="text-sm font-semibold text-slate-800 cursor-pointer">
-                  Publicar aviso inmediatamente (Activo)
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsFormOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Guardando...' : editingPopup ? 'Guardar Cambios' : 'Crear Aviso'}
+                  {isSubmitting
+                    ? 'Guardando...'
+                    : editingPopup
+                    ? 'Guardar Cambios'
+                    : 'Crear Notificación'}
                 </Button>
               </div>
             </form>

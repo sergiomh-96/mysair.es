@@ -100,7 +100,7 @@ export function AdminMessagesClient({ initialMessages }: { initialMessages: Mess
 
       {/* Message Detail Dialog */}
       <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl sm:max-w-2xl w-full">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-blue-600" />

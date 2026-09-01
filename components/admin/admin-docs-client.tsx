@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Trash2, ExternalLink, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react"
-import { addDocLink, deleteDocLink, toggleDocLink } from "@/lib/actions/admin-docs"
+import { Plus, Pencil, Trash2, ExternalLink, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react"
+import { addDocLink, updateDocLink, deleteDocLink, toggleDocLink } from "@/lib/actions/admin-docs"
 import { toast } from "sonner"
 
 type DocLink = {
@@ -27,21 +27,39 @@ type DocLink = {
 export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [addDialog, setAddDialog] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingDoc, setEditingDoc] = useState<DocLink | null>(null)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [error, setError] = useState("")
 
-  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+  function openNew() {
+    setEditingDoc(null)
+    setError("")
+    setDialogOpen(true)
+  }
+
+  function openEdit(doc: DocLink) {
+    setEditingDoc(doc)
+    setError("")
+    setDialogOpen(true)
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     startTransition(async () => {
       try {
-        await addDocLink(fd)
-        setAddDialog(false)
-        toast.success("Enlace de documentación añadido")
+        if (editingDoc) {
+          await updateDocLink(fd)
+          toast.success("Enlace de documentación actualizado")
+        } else {
+          await addDocLink(fd)
+          toast.success("Enlace de documentación añadido")
+        }
+        setDialogOpen(false)
         router.refresh()
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Error al añadir enlace"
+        const msg = err instanceof Error ? err.message : "Error al guardar enlace"
         setError(msg)
         toast.error(msg)
       }
@@ -81,9 +99,9 @@ export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Documentación</h1>
-          <p className="text-slate-500 text-sm mt-1">Gestiona los enlaces de documentación</p>
+          <p className="text-slate-500 text-sm mt-1">Gestiona y edita los enlaces de documentación técnica y manuales</p>
         </div>
-        <Button onClick={() => { setError(""); setAddDialog(true) }} className="bg-blue-600 hover:bg-blue-700 gap-2">
+        <Button onClick={openNew} className="bg-blue-600 hover:bg-blue-700 gap-2">
           <Plus className="h-4 w-4" /> Añadir enlace
         </Button>
       </div>
@@ -127,9 +145,14 @@ export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
                   </button>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDeleteId(link.id)}>
-                    <Trash2 className="h-4 w-4 text-red-400" />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openEdit(link)} title="Editar enlace">
+                      <Pencil className="h-4 w-4 text-slate-500" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDeleteId(link.id)} title="Eliminar enlace">
+                      <Trash2 className="h-4 w-4 text-red-400" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -137,34 +160,35 @@ export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
         </Table>
       </Card>
 
-      {/* Add Dialog */}
-      <Dialog open={addDialog} onOpenChange={setAddDialog}>
-        <DialogContent className="max-w-md">
+      {/* Add / Edit Dialog (widened 50%) */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl sm:max-w-2xl w-full">
           <DialogHeader>
-            <DialogTitle>Añadir enlace</DialogTitle>
+            <DialogTitle>{editingDoc ? "Editar enlace de documentación" : "Añadir enlace de documentación"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAdd} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {editingDoc && <input type="hidden" name="id" value={editingDoc.id} />}
             <div className="space-y-1.5">
-              <Label>Nombre *</Label>
-              <Input name="name" placeholder="Ej: Manual de instalación" required />
+              <Label>Nombre del documento *</Label>
+              <Input name="name" defaultValue={editingDoc?.name ?? ""} placeholder="Ej: Manual de instalación y configuración MS201V" required />
             </div>
             <div className="space-y-1.5">
-              <Label>URL *</Label>
-              <Input name="url" type="url" placeholder="https://..." required />
+              <Label>URL de descarga / visualización *</Label>
+              <Input name="url" type="url" defaultValue={editingDoc?.url ?? ""} placeholder="https://drive.google.com/... o enlace directo" required />
             </div>
             <div className="space-y-1.5">
-              <Label>Descripción</Label>
-              <Textarea name="description" rows={2} placeholder="Descripción opcional..." />
+              <Label>Descripción (opcional)</Label>
+              <Textarea name="description" defaultValue={editingDoc?.description ?? ""} rows={3} placeholder="Detalles de la versión, idioma, público objetivo..." />
             </div>
             <div className="space-y-1.5">
-              <Label>Tipo</Label>
-              <Input name="type" defaultValue="documentation" placeholder="documentation, manual, guide..." />
+              <Label>Categoría / Tipo</Label>
+              <Input name="type" defaultValue={editingDoc?.type ?? "documentation"} placeholder="documentation, manual, guide, software..." />
             </div>
             {error && <p className="text-sm text-red-500">{error}</p>}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setAddDialog(false)}>Cancelar</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
-                {isPending ? "Añadiendo..." : "Añadir"}
+                {isPending ? "Guardando..." : editingDoc ? "Guardar cambios" : "Añadir enlace"}
               </Button>
             </DialogFooter>
           </form>

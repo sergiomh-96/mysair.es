@@ -66,6 +66,86 @@ export async function upsertBlog(formData: FormData) {
   revalidatePath("/blog")
 }
 
+export async function bulkImportBlogs(blogsList: Record<string, unknown>[]) {
+  const supabase = await createServerClient()
+  if (!blogsList || blogsList.length === 0) {
+    throw new Error("No hay artículos válidos para importar.")
+  }
+
+  const sanitized = blogsList.map((item, idx) => {
+    const title = String(item.title || item.titulo || item.Titulo || "").trim()
+    const slug = String(item.slug || item.Slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `blog-${idx + 1}`).trim()
+    const excerpt = item.excerpt || item.extracto || item.Extracto ? String(item.excerpt || item.extracto || item.Extracto) : null
+    const content = String(item.content || item.contenido || item.Contenido || title).trim()
+    const summary = item.summary || item.resumen || item.Resumen ? String(item.summary || item.resumen || item.Resumen) : null
+    const author = String(item.author || item.autor || item.Autor || "MYSAir").trim()
+    const category = item.category || item.categoria || item.Categoria ? String(item.category || item.categoria || item.Categoria) : null
+    const tagsRaw = item.tags || item.etiquetas || item.Etiquetas
+    const tags = Array.isArray(tagsRaw) ? tagsRaw : typeof tagsRaw === "string" ? tagsRaw.split(",").map((t: string) => t.trim()).filter(Boolean) : []
+    const published = item.published === true || item.published === "true" || item.publicado === true || item.publicado === "true" || item.Publicado === "SI" || item.Publicado === "Sí"
+    const featured = item.featured === true || item.featured === "true" || item.destacado === true || item.destacado === "true" || item.Destacado === "SI" || item.Destacado === "Sí"
+    const reading_time = Number(item.reading_time || item.tiempo_lectura) || null
+    const route_type = (item.route_type || item.ruta) === "blog" ? "blog" : "blogs"
+    const image_url = item.image_url || item.imagen || item.Imagen ? String(item.image_url || item.imagen || item.Imagen) : null
+    const meta_title = item.meta_title ? String(item.meta_title) : null
+    const meta_description = item.meta_description ? String(item.meta_description) : null
+    const meta_keywords = item.meta_keywords ? String(item.meta_keywords) : null
+    const canonical_url = item.canonical_url ? String(item.canonical_url) : null
+
+    let sections = null
+    const sectionsRaw = item.sections || item.secciones
+    if (sectionsRaw) {
+      if (typeof sectionsRaw === "object") sections = sectionsRaw
+      else if (typeof sectionsRaw === "string") {
+        try { sections = JSON.parse(sectionsRaw) } catch {}
+      }
+    }
+
+    return {
+      title,
+      slug,
+      excerpt,
+      content,
+      sections,
+      summary,
+      author,
+      category,
+      tags,
+      published,
+      featured,
+      reading_time,
+      route_type,
+      image_url,
+      meta_title,
+      meta_description,
+      meta_keywords,
+      canonical_url,
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  })
+
+  let successCount = 0
+  for (const item of sanitized) {
+    if (!item.title || !item.slug) continue
+
+    const { data: existing } = await supabase.from("blog_posts").select("id").eq("slug", item.slug).single()
+    if (existing?.id) {
+      const { error } = await supabase.from("blog_posts").update(item).eq("id", existing.id)
+      if (error) throw error
+    } else {
+      const { error } = await supabase.from("blog_posts").insert({ ...item, created_at: new Date().toISOString() })
+      if (error) throw error
+    }
+    successCount++
+  }
+
+  revalidatePath("/admin/blogs")
+  revalidatePath("/blogs")
+  revalidatePath("/blog")
+  return { count: successCount }
+}
+
 export async function deleteBlog(id: number) {
   const supabase = await createServerClient()
   const { error } = await supabase.from("blog_posts").delete().eq("id", id)

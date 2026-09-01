@@ -12,10 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, Video, AlertTriangle } from "lucide-react"
-import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo } from "@/lib/actions/admin-products"
+import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo, bulkImportProducts } from "@/lib/actions/admin-products"
 import { useRouter } from "next/navigation"
 import { DocumentListField } from "./document-list-field"
 import { StringListField } from "./string-list-field"
+import { SpecListField } from "./spec-list-field"
+import { TechnicalSpecsField } from "./technical-specs-field"
+import { BulkExcelImport } from "./bulk-excel-import"
 import { toast } from "sonner"
 
 type Product = {
@@ -144,16 +147,104 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
     })
   }
 
+  const productTemplateHeaders = [
+    "name",
+    "slug",
+    "category",
+    "subcategory",
+    "description",
+    "is_featured",
+    "is_active",
+    "sort_order",
+    "stl_model_url",
+    "image_url",
+    "variants",
+    "dimensions",
+    "colors",
+    "fixation_types",
+    "insulation_types",
+    "lines_vias",
+    "communication_types",
+    "technical_specs",
+    "ficha_tecnica_url",
+    "manual_instalador_url",
+    "manual_usuario_url",
+  ]
+
+  const productTemplateSampleData = [
+    {
+      name: "Rejilla Lineal MS201V",
+      slug: "ms201v",
+      category: "air_diffusion",
+      subcategory: "grilles",
+      description: "Rejilla lineal de difusión de aire continuo de alta eficiencia arquitectónica.",
+      is_featured: true,
+      is_active: true,
+      sort_order: 1,
+      stl_model_url: "https://mysair.es/models/ms201v.stl",
+      image_url: '["https://mysair.es/images/ms201v-1.jpg", "https://mysair.es/images/ms201v-2.jpg"]',
+      variants: '[{"name":"MS201V-V1","description":"1 Vía"},{"name":"MS201V-V2","description":"2 Vías"}]',
+      dimensions: '[{"name":"200x100 mm","description":"150-300 m³/h"}]',
+      colors: '[{"name":"Blanco RAL 9010","hex_color":"#FFFFFF"}]',
+      fixation_types: '[{"name":"Clips ocultos","description":"Montaje en techo continuo"}]',
+      insulation_types: '[{"name":"Termoacústico 10mm","description":"Clase 0"}]',
+      lines_vias: '[{"name":"1 Vía","description":"Impulsión lineal"}]',
+      communication_types: '[{"name":"Modbus RTU","description":"RS-485"}]',
+      technical_specs: '{"Alimentacion":"230V AC - 50Hz","Material":"Aluminio extruido","Nivel sonoro":"< 25 dB(A)"}',
+      ficha_tecnica_url: '[{"name":"Ficha Técnica MS201V - ES","url":"https://drive.google.com/open?id=XXXX"}]',
+      manual_instalador_url: '[{"name":"Manual Instalador v2","url":"https://drive.google.com/open?id=YYYY"}]',
+      manual_usuario_url: '[{"name":"Guía Rápida","url":"https://drive.google.com/open?id=ZZZZ"}]',
+    },
+    {
+      name: "Central de Control MS-CC7",
+      slug: "ms-cc7",
+      category: "smart_systems",
+      subcategory: "zoning",
+      description: "Central inteligente de zonificación para hasta 7 zonas independientes.",
+      is_featured: false,
+      is_active: true,
+      sort_order: 2,
+      stl_model_url: "",
+      image_url: '["https://mysair.es/images/ms-cc7.jpg"]',
+      variants: '[{"name":"MS-CC7-WIFI","description":"Conexión WiFi y App"}]',
+      dimensions: '[{"name":"220x160 mm","description":"Caja carril DIN"}]',
+      colors: '[{"name":"Gris Industrial","hex_color":"#4B5563"}]',
+      fixation_types: '[{"name":"Carril DIN","description":"Montaje en cuadro eléctrico"}]',
+      insulation_types: '[]',
+      lines_vias: '[]',
+      communication_types: '[{"name":"WiFi / Modbus / Zigbee","description":"Integración domótica completa"}]',
+      technical_specs: '{"Alimentacion":"24V DC / 230V AC","Consumo maximo":"15W","Salidas reles":"7 salidas a 230V"}',
+      ficha_tecnica_url: '[{"name":"Ficha Técnica MS-CC7","url":"https://drive.google.com/..."}]',
+      manual_instalador_url: '[{"name":"Manual de Puesta en Marcha","url":"https://drive.google.com/..."}]',
+      manual_usuario_url: '[]',
+    },
+  ]
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Productos</h1>
           <p className="text-slate-500 text-sm mt-1">{products.length} productos en total</p>
         </div>
-        <Button onClick={openNewProduct} className="bg-blue-600 hover:bg-blue-700 gap-2">
-          <Plus className="h-4 w-4" /> Nuevo producto
-        </Button>
+        <div className="flex items-center gap-2.5">
+          <BulkExcelImport
+            title="Importación Masiva de Productos"
+            description="Sube un archivo Excel (.xlsx/.csv) para crear o actualizar productos de forma masiva"
+            templateFilename="plantilla_productos_mysair"
+            templateHeaders={productTemplateHeaders}
+            templateSampleData={productTemplateSampleData}
+            onImport={async (rows) => {
+              const res = await bulkImportProducts(rows)
+              router.refresh()
+              return res
+            }}
+            triggerLabel="Importar Excel"
+          />
+          <Button onClick={openNewProduct} className="bg-blue-600 hover:bg-blue-700 gap-2 shadow-2xs">
+            <Plus className="h-4 w-4" /> Nuevo producto
+          </Button>
+        </div>
       </div>
 
       <Card className="border border-slate-200">
@@ -212,7 +303,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
 
       {/* Product Dialog */}
       <Dialog open={productDialog} onOpenChange={setProductDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl sm:max-w-5xl md:max-w-6xl w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? "Editar producto" : "Nuevo producto"}</DialogTitle>
           </DialogHeader>
@@ -294,27 +385,99 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                 </div>
               </TabsContent>
 
-              <TabsContent value="specs" className="space-y-4">
-                {[
-                  { name: "dimensions", label: "Dimensiones (JSON)" },
-                  { name: "variants", label: "Variantes (JSON)" },
-                  { name: "colors", label: "Colores (JSON)" },
-                  { name: "fixation_types", label: "Tipos de fijación (JSON)" },
-                  { name: "insulation_types", label: "Tipos de aislamiento (JSON)" },
-                  { name: "lines_vias", label: "Líneas/Vías (JSON)" },
-                  { name: "communication_types", label: "Comunicaciones (JSON)" },
-                  { name: "technical_specs", label: "Especificaciones técnicas (JSON)" },
-                ].map(({ name, label }) => (
-                  <div key={name} className="space-y-1.5">
-                    <Label>{label}</Label>
-                    <Textarea
-                      name={name}
-                      defaultValue={editingProduct?.[name as keyof Product] ? JSON.stringify(editingProduct[name as keyof Product]) : ""}
-                      rows={2}
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                ))}
+              <TabsContent value="specs" className="space-y-5">
+                <SpecListField
+                  name="variants"
+                  label="Variantes y Modelos"
+                  description="Variantes del producto con nombre/código y descripción detallada"
+                  initialValue={editingProduct?.variants}
+                  nameLabel="Título / Modelo"
+                  namePlaceholder="Ej: MS201V-V4"
+                  valueLabel="Descripción / Función"
+                  valuePlaceholder="Ej: Central de clima 7 zonas"
+                  addButtonText="Añadir variante / modelo"
+                />
+
+                <SpecListField
+                  name="dimensions"
+                  label="Dimensiones disponibles"
+                  description="Medidas y formatos disponibles del producto"
+                  initialValue={editingProduct?.dimensions}
+                  nameLabel="Dimensión / Formato"
+                  namePlaceholder="Ej: 200 x 100 mm o Ø 150 mm"
+                  valueLabel="Caudal / Detalle"
+                  valuePlaceholder="Ej: 150 - 300 m³/h"
+                  addButtonText="Añadir dimensión"
+                />
+
+                <SpecListField
+                  name="colors"
+                  label="Colores y Acabados"
+                  description="Paleta de colores disponibles con selector visual"
+                  initialValue={editingProduct?.colors}
+                  nameLabel="Nombre del color"
+                  namePlaceholder="Ej: Blanco lacado RAL 9010"
+                  valueLabel="Color HEX"
+                  valuePlaceholder="Ej: #FFFFFF"
+                  isColor={true}
+                  addButtonText="Añadir color"
+                />
+
+                <SpecListField
+                  name="fixation_types"
+                  label="Tipos de Fijación"
+                  description="Sistemas de fijación y montaje disponibles"
+                  initialValue={editingProduct?.fixation_types}
+                  nameLabel="Tipo de fijación"
+                  namePlaceholder="Ej: Fijación por clips ocultos"
+                  valueLabel="Descripción / Aplicación"
+                  valuePlaceholder="Ej: Recomendado para techos continuos de yeso"
+                  addButtonText="Añadir tipo de fijación"
+                />
+
+                <SpecListField
+                  name="insulation_types"
+                  label="Tipos de Aislamiento"
+                  description="Opciones de aislamiento térmico y acústico"
+                  initialValue={editingProduct?.insulation_types}
+                  nameLabel="Tipo de aislamiento"
+                  namePlaceholder="Ej: Aislamiento termoacústico 10 mm"
+                  valueLabel="Descripción"
+                  valuePlaceholder="Ej: Espuma elastomérica ignífuga clase 0"
+                  addButtonText="Añadir tipo de aislamiento"
+                />
+
+                <SpecListField
+                  name="lines_vias"
+                  label="Líneas / Vías de Difusión"
+                  description="Opciones de vías de impulsión o retorno"
+                  initialValue={editingProduct?.lines_vias}
+                  nameLabel="Número de vías"
+                  namePlaceholder="Ej: 1 Vía / 2 Vías"
+                  valueLabel="Descripción"
+                  valuePlaceholder="Ej: Impulsión bidireccional de aire"
+                  addButtonText="Añadir opción de vías"
+                />
+
+                <SpecListField
+                  name="communication_types"
+                  label="Tipos de Comunicación"
+                  description="Protocolos y conexiones inteligentes soportadas"
+                  initialValue={editingProduct?.communication_types}
+                  nameLabel="Protocolo / Conexión"
+                  namePlaceholder="Ej: Modbus RTU / RS-485 / Zigbee"
+                  valueLabel="Descripción"
+                  valuePlaceholder="Ej: Integración domótica directa con BMS"
+                  addButtonText="Añadir tipo de comunicación"
+                />
+
+                <TechnicalSpecsField
+                  name="technical_specs"
+                  label="Especificaciones Técnicas"
+                  description="Características técnicas del producto (un guion - por cada especificación)"
+                  initialValue={editingProduct?.technical_specs}
+                  addButtonText="Añadir bloque de especificaciones"
+                />
               </TabsContent>
 
               <TabsContent value="files" className="space-y-4">
@@ -378,7 +541,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
 
       {/* Video Dialog */}
       <Dialog open={videoDialog} onOpenChange={setVideoDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-2xl w-full">
           <DialogHeader>
             <DialogTitle>{editingVideo?.video ? "Editar video" : "Añadir video"}</DialogTitle>
           </DialogHeader>
