@@ -1,5 +1,7 @@
 "use server"
 
+import { BetaAnalyticsDataClient } from "@google-analytics/data"
+
 export type AnalyticsPeriod = "7d" | "30d" | "90d" | "12m"
 
 export interface KPIStat {
@@ -57,6 +59,66 @@ export interface AnalyticsDashboardData {
   countries: CountryItem[]
   devices: DeviceItem[]
   updatedAt: string
+}
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  ES: "🇪🇸",
+  PT: "🇵🇹",
+  FR: "🇫🇷",
+  MX: "🇲🇽",
+  US: "🇺🇸",
+  GB: "🇬🇧",
+  DE: "🇩🇪",
+  IT: "🇮🇹",
+  CO: "🇨🇴",
+  AR: "🇦🇷",
+  CL: "🇨🇱",
+  PE: "🇵🇪",
+}
+
+function getPeriodDays(period: AnalyticsPeriod): number {
+  if (period === "7d") return 7
+  if (period === "30d") return 30
+  if (period === "90d") return 90
+  return 365
+}
+
+function getGA4Client(): { client: BetaAnalyticsDataClient; propertyId: string } | null {
+  const propertyId = process.env.GA4_PROPERTY_ID?.replace(/^properties\//, "")
+  if (!propertyId) return null
+
+  // Option 1: Direct JSON credentials string
+  if (process.env.GA4_CREDENTIALS) {
+    try {
+      const credentials = JSON.parse(process.env.GA4_CREDENTIALS)
+      return {
+        client: new BetaAnalyticsDataClient({ credentials }),
+        propertyId,
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Option 2: Email & Private Key
+  const clientEmail = process.env.GA4_CLIENT_EMAIL
+  let privateKey = process.env.GA4_PRIVATE_KEY
+
+  if (clientEmail && privateKey) {
+    // Handle escaped newlines in env variables
+    privateKey = privateKey.replace(/\\n/g, "\n")
+    return {
+      client: new BetaAnalyticsDataClient({
+        credentials: {
+          client_email: clientEmail,
+          private_key: privateKey,
+        },
+      }),
+      propertyId,
+    }
+  }
+
+  return null
 }
 
 /**
@@ -212,14 +274,14 @@ function getDemoAnalyticsData(period: AnalyticsPeriod): AnalyticsDashboardData {
         rawValue: totalViewsSum,
         change: +12.5,
         trend: "up",
-        targetToday: Math.round(totalViewsSum / days),
+        targetToday: Math.round(totalViewsSum / (days || 1)),
       },
       uniqueVisitors: {
         value: uniqueVisitorsFormatted,
         rawValue: totalVisitorsSum,
         change: +8.4,
         trend: "up",
-        targetToday: Math.round(totalVisitorsSum / days),
+        targetToday: Math.round(totalVisitorsSum / (days || 1)),
       },
       pageviewsPerSession: {
         value: avgViewsPerSession.toFixed(1),
@@ -243,21 +305,236 @@ function getDemoAnalyticsData(period: AnalyticsPeriod): AnalyticsDashboardData {
 }
 
 /**
+ * Fetch real analytics data from GA4 Data API.
+ */
+async function fetchRealGA4Data(
+  client: BetaAnalyticsDataClient,
+  propertyId: string,
+  period: AnalyticsPeriod
+): Promise<AnalyticsDashboardData> {
+  const days = getPeriodDays(period)
+  const property = `properties/${propertyId}`
+
+  const startDate = `${days}daysAgo`
+  const endDate = "today"
+  const prevStartDate = `${days * 2}daysAgo`
+  const prevEndDate = `${days + 1}daysAgo`
+
+  // 1. Current Period KPIs & Prev Period KPIs
+  const [kpiReport] = await client.runReport({
+    property,
+    dateRanges: [
+      { startDate, endDate, name: "current" },
+      { startDate: prevStartDate, endDate: prevEndDate, name: "previous" },
+    ],
+    metrics: [
+      { name: "screenPageViews" },
+      { name: "activeUsers" },
+      { name: "sessions" },
+      { name: "userEngagementDuration" },
+    ],
+  })
+
+  const currentTotals = kpiReport.rows?.find((r) => r.dimensionValues?.[0]?.value === "current") || kpiReport.rows?.[0]
+  const prevTotals = kpiReport.rows?.find((r) => r.dimensionValues?.[0]?.value === "previous")
+
+  const currentViews = Number(currentTotals?.metricValues?.[0]?.value || 0)
+  const currentUsers = Number(currentTotals?.metricValues?.[1]?.value || 0)
+  const currentSessions = Number(currentTotals?.metricValues?.[2]?.value || 1)
+  const currentDurationSec = Number(currentTotals?.metricValues?.[3]?.value || 0)
+
+  const prevViews = Number(prevTotals?.metricValues?.[0]?.value || 0)
+  const prevUsers = Number(prevTotals?.metricValues?.[1]?.value || 0)
+  const prevSessions = Number(prevTotals?.metricValues?.[2]?.value || 1)
+  const prevDurationSec = Number(prevTotals?.metricValues?.[3]?.value || 0)
+
+  const calcChange = (curr: number, prev: number) => {
+    if (prev === 0) return 0
+    return +(((curr - prev) / prev) * 100).toFixed(1)
+  }
+
+  const viewsChange = calcChange(currentViews, prevViews)
+  const usersChange = calcChange(currentUsers, prevUsers)
+  const pagesPerSession = +(currentViews / (currentSessions || 1)).toFixed(2)
+  const prevPagesPerSession = +(prevViews / (prevSessions || 1)).toFixed(2)
+  const ppsChange = calcChange(pagesPerSession, prevPagesPerSession)
+
+  const avgDuration = Math.round(currentDurationSec / (currentSessions || 1))
+  const prevAvgDuration = Math.round(prevDurationSec / (prevSessions || 1))
+  const durationChange = calcChange(avgDuration, prevAvgDuration)
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}m ${secs}s`
+  }
+
+  // 2. Trend (Timeseries)
+  const [trendReport] = await client.runReport({
+    property,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: "date" }],
+    metrics: [{ name: "screenPageViews" }, { name: "activeUsers" }],
+    orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
+  })
+
+  const trend: TrendDataPoint[] = (trendReport.rows || []).map((row) => {
+    const rawDate = row.dimensionValues?.[0]?.value || "" // YYYYMMDD
+    const y = rawDate.slice(0, 4)
+    const m = rawDate.slice(4, 6)
+    const d = rawDate.slice(6, 8)
+    const dateObj = new Date(Number(y), Number(m) - 1, Number(d))
+
+    return {
+      date: `${y}-${m}-${d}`,
+      label: dateObj.toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: days > 14 ? "numeric" : "short",
+      }),
+      views: Number(row.metricValues?.[0]?.value || 0),
+      visitors: Number(row.metricValues?.[1]?.value || 0),
+    }
+  })
+
+  // 3. Top Pages
+  const [pagesReport] = await client.runReport({
+    property,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: "pagePath" }, { name: "pageTitle" }],
+    metrics: [{ name: "screenPageViews" }, { name: "activeUsers" }],
+    orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+    limit: 10,
+  })
+
+  const topPages: TopPageItem[] = (pagesReport.rows || []).map((row) => {
+    const path = row.dimensionValues?.[0]?.value || "/"
+    const title = row.dimensionValues?.[1]?.value || path
+    const views = Number(row.metricValues?.[0]?.value || 0)
+    const uniqueViews = Number(row.metricValues?.[1]?.value || 0)
+    const percentage = currentViews > 0 ? +((views / currentViews) * 100).toFixed(1) : 0
+
+    let category = "General"
+    if (path === "/") category = "Página Principal"
+    else if (path.startsWith("/productos")) category = "Catálogo"
+    else if (path.startsWith("/blogs") || path.startsWith("/blog")) category = "Blog"
+    else if (path.startsWith("/contacto")) category = "Contacto"
+    else if (path.startsWith("/documentacion")) category = "Documentación"
+    else if (path.startsWith("/compatibilidad")) category = "Herramientas"
+    else if (path.startsWith("/software")) category = "Software"
+
+    return {
+      path,
+      title,
+      category,
+      views,
+      uniqueViews,
+      percentage,
+      change: 0,
+    }
+  })
+
+  // 4. Countries
+  const [countriesReport] = await client.runReport({
+    property,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: "country" }, { name: "countryId" }],
+    metrics: [{ name: "screenPageViews" }],
+    orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+    limit: 6,
+  })
+
+  const countries: CountryItem[] = (countriesReport.rows || []).map((row) => {
+    const country = row.dimensionValues?.[0]?.value || "Desconocido"
+    const code = (row.dimensionValues?.[1]?.value || "GL").toUpperCase()
+    const views = Number(row.metricValues?.[0]?.value || 0)
+    const percentage = currentViews > 0 ? +((views / currentViews) * 100).toFixed(1) : 0
+    const flag = COUNTRY_FLAGS[code] || "🌐"
+
+    return {
+      country,
+      code,
+      flag,
+      views,
+      percentage,
+    }
+  })
+
+  // 5. Devices
+  const [devicesReport] = await client.runReport({
+    property,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: "deviceCategory" }],
+    metrics: [{ name: "screenPageViews" }],
+    orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
+  })
+
+  const devices: DeviceItem[] = (devicesReport.rows || []).map((row) => {
+    const rawDevice = row.dimensionValues?.[0]?.value?.toLowerCase() || "desktop"
+    const views = Number(row.metricValues?.[0]?.value || 0)
+    const percentage = currentViews > 0 ? +((views / currentViews) * 100).toFixed(1) : 0
+
+    let deviceName = "Escritorio (PC/Mac)"
+    if (rawDevice === "mobile") deviceName = "Móvil (iOS/Android)"
+    if (rawDevice === "tablet") deviceName = "Tablet"
+
+    return {
+      device: deviceName,
+      percentage,
+      views,
+    }
+  })
+
+  return {
+    period,
+    source: "ga4",
+    kpis: {
+      totalViews: {
+        value: currentViews.toLocaleString("es-ES"),
+        rawValue: currentViews,
+        change: viewsChange,
+        trend: viewsChange >= 0 ? "up" : "down",
+        targetToday: Math.round(currentViews / (days || 1)),
+      },
+      uniqueVisitors: {
+        value: currentUsers.toLocaleString("es-ES"),
+        rawValue: currentUsers,
+        change: usersChange,
+        trend: usersChange >= 0 ? "up" : "down",
+        targetToday: Math.round(currentUsers / (days || 1)),
+      },
+      pageviewsPerSession: {
+        value: pagesPerSession.toFixed(1),
+        rawValue: pagesPerSession,
+        change: ppsChange,
+        trend: ppsChange >= 0 ? "up" : "down",
+      },
+      avgDuration: {
+        value: formatDuration(avgDuration),
+        rawValue: avgDuration,
+        change: durationChange,
+        trend: durationChange >= 0 ? "up" : "down",
+      },
+    },
+    trend,
+    topPages,
+    countries,
+    devices,
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+/**
  * Fetch analytics data. If GA4 credentials are configured, calls GA4 Data API.
  * Otherwise returns structured demo data.
  */
 export async function getAnalyticsData(period: AnalyticsPeriod = "30d"): Promise<AnalyticsDashboardData> {
-  const propertyId = process.env.GA4_PROPERTY_ID
-  const credentialsJson = process.env.GA4_CREDENTIALS
+  const ga4 = getGA4Client()
 
-  if (propertyId && credentialsJson) {
+  if (ga4) {
     try {
-      // Future integration with Google Analytics Data API:
-      // const analyticsClient = new BetaAnalyticsDataClient({ credentials: JSON.parse(credentialsJson) });
-      // const [response] = await analyticsClient.runReport({ ... });
-      // return formatGA4Response(response, period);
+      return await fetchRealGA4Data(ga4.client, ga4.propertyId, period)
     } catch (err) {
-      console.warn("GA4 Data API call failed, falling back to demo data:", err)
+      console.warn("[GA4 Data API] Error fetching analytics data, using fallback:", err)
     }
   }
 
