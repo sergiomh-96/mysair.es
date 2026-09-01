@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Trash2, ExternalLink, AlertTriangle, ToggleLeft, ToggleRight } from "lucide-react"
 import { addDocLink, deleteDocLink, toggleDocLink } from "@/lib/actions/admin-docs"
+import { toast } from "sonner"
 
 type DocLink = {
   id: number
@@ -37,9 +38,12 @@ export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
       try {
         await addDocLink(fd)
         setAddDialog(false)
+        toast.success("Enlace de documentación añadido")
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al añadir enlace")
+        const msg = err instanceof Error ? err.message : "Error al añadir enlace"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -47,16 +51,28 @@ export function AdminDocsClient({ initialLinks }: { initialLinks: DocLink[] }) {
   async function handleDelete() {
     if (!deleteId) return
     startTransition(async () => {
-      await deleteDocLink(deleteId)
-      setDeleteId(null)
-      router.refresh()
+      try {
+        await deleteDocLink(deleteId)
+        toast.success("Enlace eliminado")
+        setDeleteId(null)
+        router.refresh()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error al eliminar enlace"
+        toast.error(msg)
+      }
     })
   }
 
   async function handleToggle(id: number, current: boolean) {
     startTransition(async () => {
-      await toggleDocLink(id, !current)
-      router.refresh()
+      try {
+        await toggleDocLink(id, !current)
+        toast.success(!current ? "Enlace activado" : "Enlace desactivado")
+        router.refresh()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error al cambiar estado"
+        toast.error(msg)
+      }
     })
   }
 

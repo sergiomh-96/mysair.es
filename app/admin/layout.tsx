@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { getAdminSession } from "@/lib/actions/admin-auth"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 
+import { Toaster } from "@/components/ui/sonner"
+
 export const metadata: Metadata = {
   title: "Admin Panel | MYSAir",
   description: "Panel de administración de MYSAir.",
@@ -23,8 +25,9 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-slate-50 flex font-sans">
       <AdminSidebar userEmail={session.email ?? ""} />
       <main className="flex-1 overflow-auto">
-        <div className="p-8">{children}</div>
+        <div className="p-4 sm:p-8">{children}</div>
       </main>
+      <Toaster position="top-right" richColors />
     </div>
   )
 }

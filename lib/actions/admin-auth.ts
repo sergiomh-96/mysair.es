@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js"
 
 const SUPABASE_URL = "https://awaqzjughhndfpxjiaff.supabase.co"
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YXF6anVnaGhuZGZweGppYWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODkyNTEsImV4cCI6MjA3MzA2NTI1MX0.Y7O1P320s6kz7Nxs1zwUJIWiocMHD52dv3lo7Oam7Uo"
 
 export async function adminLogin(formData: FormData) {
   const email = formData.get("email") as string
@@ -15,22 +16,42 @@ export async function adminLogin(formData: FormData) {
   }
 
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceRoleKey) {
-    return { error: "Configuración del servidor incompleta." }
+  let verified = false
+
+  if (serviceRoleKey) {
+    // Admin client with service role key (RPC verify_admin_password)
+    const adminClient = createSupabaseAdmin(SUPABASE_URL, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const { data, error } = await adminClient.rpc("verify_admin_password", {
+      p_email: email.trim(),
+      p_password: password,
+    })
+
+    if (!error && data) {
+      verified = true
+    }
   }
 
-  // Admin client with service role key bypasses captcha entirely
-  const adminClient = createSupabaseAdmin(SUPABASE_URL, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
+  // Fallback: If no service role key or RPC failed, try standard Supabase Auth
+  if (!verified) {
+    const key = serviceRoleKey || SUPABASE_ANON_KEY
+    const client = createSupabaseAdmin(SUPABASE_URL, key, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
 
-  // Verify password directly via SQL function (uses pgcrypto, no captcha)
-  const { data: verified, error } = await adminClient.rpc("verify_admin_password", {
-    p_email: email.trim(),
-    p_password: password,
-  })
+    const { data: authData, error: authError } = await client.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
 
-  if (error || !verified) {
+    if (!authError && authData.user) {
+      verified = true
+    }
+  }
+
+  if (!verified) {
     return { error: "Credenciales incorrectas. Verifica tu email y contraseña." }
   }
 

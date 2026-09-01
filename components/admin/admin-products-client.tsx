@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Pencil, Trash2, Video, AlertTriangle } from "lucide-react"
 import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo } from "@/lib/actions/admin-products"
 import { useRouter } from "next/navigation"
+import { DocumentListField } from "./document-list-field"
+import { StringListField } from "./string-list-field"
+import { toast } from "sonner"
 
 type Product = {
   id: number
@@ -93,9 +96,12 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
       try {
         await upsertProduct(fd)
         setProductDialog(false)
+        toast.success(editingProduct ? "Producto actualizado correctamente" : "Producto creado correctamente")
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al guardar")
+        const msg = err instanceof Error ? err.message : "Error al guardar el producto"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -107,9 +113,12 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
       try {
         await upsertProductVideo(fd)
         setVideoDialog(false)
+        toast.success("Video guardado correctamente")
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al guardar video")
+        const msg = err instanceof Error ? err.message : "Error al guardar video"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -118,12 +127,19 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
     if (!deleteDialog) return
     startTransition(async () => {
       try {
-        if (deleteDialog.type === "product") await deleteProduct(deleteDialog.id)
-        else await deleteProductVideo(deleteDialog.id)
+        if (deleteDialog.type === "product") {
+          await deleteProduct(deleteDialog.id)
+          toast.success("Producto eliminado")
+        } else {
+          await deleteProductVideo(deleteDialog.id)
+          toast.success("Video eliminado")
+        }
         setDeleteDialog(null)
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al eliminar")
+        const msg = err instanceof Error ? err.message : "Error al eliminar"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -261,12 +277,20 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>URLs de imágenes (JSON array)</Label>
-                  <Textarea name="image_url" defaultValue={editingProduct?.image_url ? JSON.stringify(editingProduct.image_url) : "[]"} rows={2} className="font-mono text-xs" />
+                  <StringListField
+                    name="image_url"
+                    label="Imágenes del producto"
+                    description="URLs de imágenes para la galería del producto"
+                    initialValue={editingProduct?.image_url}
+                    placeholder="https://... o /images/products/..."
+                    addButtonText="Añadir imagen"
+                    emptyText="No hay imágenes añadidas."
+                    isImage={true}
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>URL modelo STL</Label>
-                  <Input name="stl_model_url" defaultValue={editingProduct?.stl_model_url ?? ""} />
+                  <Label>URL modelo STL (3D)</Label>
+                  <Input name="stl_model_url" defaultValue={editingProduct?.stl_model_url ?? ""} placeholder="https://.../model.stl" />
                 </div>
               </TabsContent>
 
@@ -294,23 +318,50 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
               </TabsContent>
 
               <TabsContent value="files" className="space-y-4">
-                {[
-                  { name: "ficha_tecnica_url", label: "Ficha técnica (JSON)" },
-                  { name: "manual_instalador_url", label: "Manual instalador (JSON)" },
-                  { name: "manual_usuario_url", label: "Manual usuario (JSON)" },
-                  { name: "bim_url", label: "BIM (JSON)" },
-                  { name: "cad_url", label: "CAD (JSON)" },
-                ].map(({ name, label }) => (
-                  <div key={name} className="space-y-1.5">
-                    <Label>{label}</Label>
-                    <Textarea
-                      name={name}
-                      defaultValue={editingProduct?.[name as keyof Product] ? JSON.stringify(editingProduct[name as keyof Product]) : ""}
-                      rows={2}
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                ))}
+                <DocumentListField
+                  name="ficha_tecnica_url"
+                  label="Ficha técnica"
+                  description="Documentos de ficha técnica disponibles para descarga"
+                  initialValue={editingProduct?.ficha_tecnica_url}
+                  nameFieldPlaceholder="Ej: Ficha Técnica MS201V - ES"
+                  addButtonText="Añadir ficha técnica"
+                />
+
+                <DocumentListField
+                  name="manual_instalador_url"
+                  label="Manual de instalador"
+                  description="Manuales de instalación y puesta en marcha"
+                  initialValue={editingProduct?.manual_instalador_url}
+                  nameFieldPlaceholder="Ej: Manual Instalador v2.1"
+                  addButtonText="Añadir manual de instalador"
+                />
+
+                <DocumentListField
+                  name="manual_usuario_url"
+                  label="Manual de usuario"
+                  description="Guías y manuales de usuario final"
+                  initialValue={editingProduct?.manual_usuario_url}
+                  nameFieldPlaceholder="Ej: Guía de Usuario - ES"
+                  addButtonText="Añadir manual de usuario"
+                />
+
+                <DocumentListField
+                  name="bim_url"
+                  label="Modelos BIM / Revit"
+                  description="Archivos BIM / Revit para arquitectos e ingenieros"
+                  initialValue={editingProduct?.bim_url}
+                  nameFieldPlaceholder="Ej: Archivo BIM RFA / IFC"
+                  addButtonText="Añadir archivo BIM"
+                />
+
+                <DocumentListField
+                  name="cad_url"
+                  label="Archivos CAD / DWG"
+                  description="Planos 2D y 3D en formato DWG / DXF"
+                  initialValue={editingProduct?.cad_url}
+                  nameFieldPlaceholder="Ej: Plano CAD 2D/3D (DWG)"
+                  addButtonText="Añadir archivo CAD"
+                />
               </TabsContent>
             </Tabs>
 

@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Pencil, Trash2, AlertTriangle, Globe, ChevronDown, ChevronUp, X } from "lucide-react"
 import { upsertBlog, deleteBlog } from "@/lib/actions/admin-blogs"
+import { toast } from "sonner"
 
 type Section = {
   id: string
@@ -175,9 +176,12 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
       try {
         await upsertBlog(fd)
         setDialog(false)
+        toast.success(editing ? "Artículo actualizado correctamente" : "Artículo creado correctamente")
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Error al guardar")
+        const msg = err instanceof Error ? err.message : "Error al guardar"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -185,9 +189,15 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
   async function handleDelete() {
     if (!deleteId) return
     startTransition(async () => {
-      await deleteBlog(deleteId)
-      setDeleteId(null)
-      router.refresh()
+      try {
+        await deleteBlog(deleteId)
+        toast.success("Artículo eliminado correctamente")
+        setDeleteId(null)
+        router.refresh()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error al eliminar"
+        toast.error(msg)
+      }
     })
   }
 

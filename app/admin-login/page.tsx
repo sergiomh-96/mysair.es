@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
       const formData = new FormData(e.currentTarget)
       const result = await adminLogin(formData)
       if (result?.error) {
-        setError("Credenciales incorrectas. Verifica tu email y contraseña.")
+        setError(result.error)
       }
     } catch {
       // redirect() throws - this is expected on success
