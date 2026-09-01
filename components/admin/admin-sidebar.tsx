@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   Sparkles,
+  Images,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -58,6 +59,7 @@ const navGroups: NavGroup[] = [
   {
     label: "Herramientas",
     items: [
+      { href: "/admin/multimedia", label: "Multimedia / Storage", icon: Images },
       { href: "/admin/redirects", label: "Redirecciones", icon: ArrowLeftRight },
     ],
   },

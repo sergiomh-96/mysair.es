@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, Trash2, Image as ImageIcon, ExternalLink, GripVertical } from "lucide-react"
+import { MediaPickerModal } from "./storage/media-picker-modal"
 
 interface StringListFieldProps {
   name: string
@@ -43,7 +44,7 @@ export function StringListField({
   description,
   initialValue,
   placeholder = "https://ejemplo.com/imagen.webp o /images/...",
-  addButtonText = "Añadir URL",
+  addButtonText = "Añadir URL manual",
   emptyText = "No hay elementos en la lista.",
   isImage = true,
 }: StringListFieldProps) {
@@ -53,8 +54,8 @@ export function StringListField({
     setItems(parseInitialValue(initialValue))
   }, [initialValue])
 
-  function addItem() {
-    setItems((prev) => [...prev, ""])
+  function addItem(url = "") {
+    setItems((prev) => [...prev, url])
   }
 
   function updateItem(index: number, val: string) {
@@ -126,6 +127,15 @@ export function StringListField({
                 className="h-8 text-xs font-mono bg-slate-50/50 focus:bg-white flex-1"
               />
 
+              {isImage && (
+                <MediaPickerModal
+                  onSelect={(url) => updateItem(idx, url)}
+                  triggerLabel="Cambiar"
+                  triggerVariant="ghost"
+                  className="h-8 px-2 text-slate-500 hover:text-blue-600"
+                />
+              )}
+
               {item && (
                 <a
                   href={item}
@@ -153,16 +163,26 @@ export function StringListField({
         </div>
       )}
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={addItem}
-        className="w-full text-xs font-medium text-blue-600 border-blue-200 bg-white hover:bg-blue-50/60 gap-1.5 h-8"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        {addButtonText}
-      </Button>
+      <div className="flex items-center gap-2">
+        {isImage && (
+          <MediaPickerModal
+            onSelect={(url) => addItem(url)}
+            triggerLabel="Elegir o Subir al Storage"
+            triggerVariant="outline"
+            className="flex-1 text-xs font-semibold text-blue-700 bg-blue-50/60 border-blue-200 hover:bg-blue-100/70 h-8"
+          />
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => addItem("")}
+          className={`${isImage ? "shrink-0" : "w-full"} text-xs font-medium text-slate-600 border-slate-200 bg-white hover:bg-slate-50 gap-1.5 h-8`}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {addButtonText}
+        </Button>
+      </div>
     </div>
   )
 }

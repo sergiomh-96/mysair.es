@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, Trash2, ExternalLink, FileText, GripVertical } from "lucide-react"
+import { MediaPickerModal } from "./storage/media-picker-modal"
 
 export interface DocumentItem {
   name: string
@@ -143,25 +144,37 @@ export function DocumentListField({
                     className="h-8 text-xs bg-slate-50/50 focus:bg-white"
                   />
                 </div>
-                <div className="sm:col-span-7 flex items-center gap-1.5">
-                  <Input
-                    placeholder={urlFieldPlaceholder}
-                    value={item.url}
-                    onChange={(e) => updateItem(idx, "url", e.target.value)}
-                    className="h-8 text-xs font-mono bg-slate-50/50 focus:bg-white flex-1"
-                  />
-                  {item.url && (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
-                      title="Abrir enlace"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
-                </div>
+                  <div className="sm:col-span-7 flex items-center gap-1.5">
+                    <Input
+                      placeholder={urlFieldPlaceholder}
+                      value={item.url}
+                      onChange={(e) => updateItem(idx, "url", e.target.value)}
+                      className="h-8 text-xs font-mono bg-slate-50/50 focus:bg-white flex-1"
+                    />
+                    <MediaPickerModal
+                      onSelect={(url) => {
+                        updateItem(idx, "url", url)
+                        if (!item.name) {
+                          const filename = url.split("/").pop() || "Documento"
+                          updateItem(idx, "name", filename)
+                        }
+                      }}
+                      triggerLabel="Storage"
+                      triggerVariant="ghost"
+                      className="h-8 px-2 text-slate-500 hover:text-blue-600"
+                    />
+                    {item.url && (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 text-slate-400 hover:text-blue-600 rounded transition-colors"
+                        title="Abrir enlace"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
               </div>
 
               <Button

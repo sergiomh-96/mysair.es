@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Pencil, Trash2, AlertTriangle, Globe, ChevronDown, ChevronUp, X } from "lucide-react"
 import { upsertBlog, deleteBlog, bulkImportBlogs } from "@/lib/actions/admin-blogs"
 import { BulkExcelImport } from "./bulk-excel-import"
+import { MediaPickerModal } from "./storage/media-picker-modal"
 import { toast } from "sonner"
 
 type Section = {
@@ -165,10 +166,25 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
   const [dialog, setDialog] = useState(false)
   const [deleteId, setDeleteId] = useState<number | null>(null)
   const [editing, setEditing] = useState<Blog | null>(null)
+  const [imageUrl, setImageUrl] = useState("")
+  const [ogImageUrl, setOgImageUrl] = useState("")
   const [error, setError] = useState("")
 
-  function openNew() { setEditing(null); setError(""); setDialog(true) }
-  function openEdit(b: Blog) { setEditing(b); setError(""); setDialog(true) }
+  function openNew() {
+    setEditing(null)
+    setImageUrl("")
+    setOgImageUrl("")
+    setError("")
+    setDialog(true)
+  }
+
+  function openEdit(b: Blog) {
+    setEditing(b)
+    setImageUrl(b.image_url ?? "")
+    setOgImageUrl(b.og_image ?? "")
+    setError("")
+    setDialog(true)
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -427,8 +443,11 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>URL imagen principal</Label>
-                    <Input name="image_url" defaultValue={editing?.image_url ?? ""} />
+                    <div className="flex items-center justify-between">
+                      <Label>URL imagen principal</Label>
+                      <MediaPickerModal onSelect={setImageUrl} triggerLabel="Storage" />
+                    </div>
+                    <Input name="image_url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Autor</Label>
@@ -481,8 +500,11 @@ export function AdminBlogsClient({ initialBlogs }: { initialBlogs: Blog[] }) {
                     <Textarea name="og_description" defaultValue={editing?.og_description ?? ""} rows={2} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>OG Imagen URL</Label>
-                    <Input name="og_image" defaultValue={editing?.og_image ?? ""} />
+                    <div className="flex items-center justify-between">
+                      <Label>OG Imagen URL</Label>
+                      <MediaPickerModal onSelect={setOgImageUrl} triggerLabel="Storage" />
+                    </div>
+                    <Input name="og_image" value={ogImageUrl} onChange={(e) => setOgImageUrl(e.target.value)} placeholder="https://..." />
                   </div>
                 </div>
                 <div className="space-y-1.5">

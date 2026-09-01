@@ -24,8 +24,14 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
+  Calendar,
+  Eye,
+  Clock,
+  Send,
+  HelpCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { MediaPickerModal } from '../storage/media-picker-modal'
 
 interface PopupManagerProps {
   initialPopups: PopupNotification[]
@@ -379,9 +385,12 @@ export function PopupManager({ initialPopups }: PopupManagerProps) {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    URL de la Imagen
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                      URL de la Imagen
+                    </label>
+                    <MediaPickerModal onSelect={setImageUrl} triggerLabel="Storage" />
+                  </div>
                   <Input
                     type="url"
                     value={imageUrl}
