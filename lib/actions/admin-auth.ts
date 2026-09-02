@@ -4,11 +4,11 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js"
 
-const SUPABASE_URL = "https://awaqzjughhndfpxjiaff.supabase.co"
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YXF6anVnaGhuZGZweGppYWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODkyNTEsImV4cCI6MjA3MzA2NTI1MX0.Y7O1P320s6kz7Nxs1zwUJIWiocMHD52dv3lo7Oam7Uo"
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://awaqzjughhndfpxjiaff.supabase.co"
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YXF6anVnaGhuZGZweGppYWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODkyNTEsImV4cCI6MjA3MzA2NTI1MX0.Y7O1P320s6kz7Nxs1zwUJIWiocMHD52dv3lo7Oam7Uo"
 
 export async function adminLogin(formData: FormData) {
-  const email = formData.get("email") as string
+  const email = (formData.get("email") as string)?.trim()
   const password = formData.get("password") as string
 
   if (!email || !password) {
@@ -18,36 +18,46 @@ export async function adminLogin(formData: FormData) {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   let verified = false
 
+  // 1. Try RPC verify_admin_password if service role key exists
   if (serviceRoleKey) {
-    // Admin client with service role key (RPC verify_admin_password)
-    const adminClient = createSupabaseAdmin(SUPABASE_URL, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    try {
+      const adminClient = createSupabaseAdmin(SUPABASE_URL, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
 
-    const { data, error } = await adminClient.rpc("verify_admin_password", {
-      p_email: email.trim(),
-      p_password: password,
-    })
+      const { data, error } = await adminClient.rpc("verify_admin_password", {
+        p_email: email,
+        p_password: password,
+      })
 
-    if (!error && data) {
-      verified = true
+      if (!error && data) {
+        verified = true
+      }
+    } catch (err) {
+      console.warn("[adminLogin] RPC attempt error:", err)
     }
   }
 
-  // Fallback: If no service role key or RPC failed, try standard Supabase Auth
+  // 2. Try standard Supabase Auth signInWithPassword
   if (!verified) {
-    const key = serviceRoleKey || SUPABASE_ANON_KEY
-    const client = createSupabaseAdmin(SUPABASE_URL, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    try {
+      const key = serviceRoleKey || SUPABASE_ANON_KEY
+      const client = createSupabaseAdmin(SUPABASE_URL, key, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
 
-    const { data: authData, error: authError } = await client.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (!authError && authData.user) {
-      verified = true
+      if (!authError && authData.user) {
+        verified = true
+      } else if (authError) {
+        console.warn("[adminLogin] Supabase Auth signIn error:", authError.message)
+      }
+    } catch (err) {
+      console.warn("[adminLogin] Supabase Auth exception:", err)
     }
   }
 
@@ -57,7 +67,7 @@ export async function adminLogin(formData: FormData) {
 
   // Set a signed session cookie valid for 8 hours
   const cookieStore = await cookies()
-  const sessionData = { email: email.trim(), loggedAt: Date.now(), isAdmin: true }
+  const sessionData = { email, loggedAt: Date.now(), isAdmin: true }
   const sessionValue = Buffer.from(JSON.stringify(sessionData)).toString("base64")
 
   cookieStore.set("admin_session", sessionValue, {
@@ -68,7 +78,7 @@ export async function adminLogin(formData: FormData) {
     path: "/",
   })
 
-  redirect("/admin")
+  return { success: true }
 }
 
 export async function adminLogout() {

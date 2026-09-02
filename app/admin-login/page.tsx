@@ -1,9 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { adminLogin } from "@/lib/actions/admin-auth"
 
 export default function AdminLoginPage() {
+  const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -17,10 +20,13 @@ export default function AdminLoginPage() {
       const result = await adminLogin(formData)
       if (result?.error) {
         setError(result.error)
+        setLoading(false)
+      } else if (result?.success) {
+        router.push("/admin")
+        router.refresh()
       }
     } catch {
-      // redirect() throws - this is expected on success
-    } finally {
+      setError("Error de conexión al verificar credenciales. Inténtalo de nuevo.")
       setLoading(false)
     }
   }
@@ -28,12 +34,19 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 mb-4">
-            <span className="text-white font-bold text-xl">M</span>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="h-16 w-auto flex items-center justify-center mb-4">
+            <Image
+              src="/logo-mysair.png"
+              alt="MYSAir - Sistema de zonas y difusión"
+              width={260}
+              height={65}
+              className="h-14 w-auto object-contain drop-shadow-xs"
+              priority
+            />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">MYSAir Admin</h1>
-          <p className="text-slate-500 text-sm mt-1">Panel de administración</p>
+          <h1 className="text-xl font-bold text-slate-900">Panel de Administración</h1>
+          <p className="text-slate-500 text-xs mt-1">Accede con tus credenciales autorizadas</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 space-y-5">
@@ -70,7 +83,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
           >
             {loading ? "Accediendo..." : "Entrar al panel"}
           </button>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { adminLogout } from "@/lib/actions/admin-auth"
@@ -72,25 +73,23 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
   const sidebarContent = (
     <div className="flex flex-col h-full bg-slate-900 text-slate-300">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group" target="_blank">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white font-bold text-base shadow-sm shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            M
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <p className="text-white font-bold text-sm tracking-tight leading-none">MYSAir</p>
-              <span className="text-[10px] bg-blue-600/30 text-blue-400 font-semibold px-1.5 py-0.2 rounded border border-blue-500/30">
-                PRO
-              </span>
-            </div>
-            <p className="text-slate-400 text-xs mt-1">Panel de Control</p>
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between gap-2">
+        <Link href="/admin" className="flex items-center gap-2 group flex-1">
+          <div className="bg-white py-2 px-3 rounded-xl flex items-center justify-center shadow-xs border border-slate-700/60 group-hover:scale-[1.02] transition-transform w-full">
+            <Image
+              src="/logo-mysair.png"
+              alt="MYSAir Logo"
+              width={180}
+              height={45}
+              className="h-8 w-auto object-contain"
+              priority
+            />
           </div>
         </Link>
         <Link
           href="/"
           target="_blank"
-          className="text-slate-500 hover:text-slate-300 p-1 rounded-md transition-colors"
+          className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
           title="Ver web pública"
         >
           <ExternalLink className="h-4 w-4" />
