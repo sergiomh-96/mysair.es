@@ -130,9 +130,13 @@ export function StringListField({
               {isImage && (
                 <MediaPickerModal
                   onSelect={(url) => updateItem(idx, url)}
-                  triggerLabel="Cambiar"
-                  triggerVariant="ghost"
-                  className="h-8 px-2 text-slate-500 hover:text-blue-600"
+                  triggerLabel={item?.trim() ? "Cambiar" : "Subir"}
+                  triggerVariant={item?.trim() ? "ghost" : "outline"}
+                  className={`h-8 px-2.5 ${
+                    item?.trim()
+                      ? "text-slate-500 hover:text-blue-600"
+                      : "text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100/80 font-semibold"
+                  }`}
                 />
               )}
 
@@ -163,26 +167,16 @@ export function StringListField({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        {isImage && (
-          <MediaPickerModal
-            onSelect={(url) => addItem(url)}
-            triggerLabel="Elegir o Subir al Storage"
-            triggerVariant="outline"
-            className="flex-1 text-xs font-semibold text-blue-700 bg-blue-50/60 border-blue-200 hover:bg-blue-100/70 h-8"
-          />
-        )}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => addItem("")}
-          className={`${isImage ? "shrink-0" : "w-full"} text-xs font-medium text-slate-600 border-slate-200 bg-white hover:bg-slate-50 gap-1.5 h-8`}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          {addButtonText}
-        </Button>
-      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => addItem("")}
+        className="w-full text-xs font-medium text-slate-600 border-slate-200 bg-white hover:bg-slate-50 gap-1.5 h-8"
+      >
+        <Plus className="h-3.5 w-3.5" />
+        {addButtonText}
+      </Button>
     </div>
   )
 }

@@ -159,9 +159,13 @@ export function DocumentListField({
                           updateItem(idx, "name", filename)
                         }
                       }}
-                      triggerLabel="Storage"
-                      triggerVariant="ghost"
-                      className="h-8 px-2 text-slate-500 hover:text-blue-600"
+                      triggerLabel={item.url?.trim() ? "Cambiar" : "Subir"}
+                      triggerVariant={item.url?.trim() ? "ghost" : "outline"}
+                      className={`h-8 px-2.5 ${
+                        item.url?.trim()
+                          ? "text-slate-500 hover:text-blue-600"
+                          : "text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100/80 font-semibold"
+                      }`}
                     />
                     {item.url && (
                       <a

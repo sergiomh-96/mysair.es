@@ -3,11 +3,14 @@
 import { useState, useEffect, useTransition, useRef } from "react"
 import {
   StorageFileItem,
+  StorageBucketItem,
+  listStorageBuckets,
   listStorageItems,
   createFolder,
   renameFolder,
   deleteFolder,
   uploadStorageFile,
+  replaceStorageFile,
   deleteStorageFile,
 } from "@/lib/actions/admin-storage"
 import { Button } from "@/components/ui/button"
@@ -37,22 +40,27 @@ import {
   Eye,
   AlertTriangle,
   FileText,
-  ArrowLeft,
   CheckCircle2,
+  Database,
+  Layers,
 } from "lucide-react"
 import { toast } from "sonner"
 
 interface StorageManagerProps {
   onSelectFile?: (url: string) => void
   initialPath?: string
+  initialBucket?: string
   pickerMode?: boolean
 }
 
 export function StorageManager({
   onSelectFile,
   initialPath = "",
+  initialBucket = "images",
   pickerMode = false,
 }: StorageManagerProps) {
+  const [currentBucket, setCurrentBucket] = useState(initialBucket)
+  const [buckets, setBuckets] = useState<StorageBucketItem[]>([])
   const [currentPath, setCurrentPath] = useState(initialPath)
   const [items, setItems] = useState<StorageFileItem[]>([])
   const [allFolders, setAllFolders] = useState<string[]>([])
@@ -75,6 +83,12 @@ export function StorageManager({
   const [deleteFileOpen, setDeleteFileOpen] = useState(false)
   const [fileToDelete, setFileToDelete] = useState<StorageFileItem | null>(null)
 
+  // Replace dialog state
+  const [replaceFileOpen, setReplaceFileOpen] = useState(false)
+  const [fileToReplace, setFileToReplace] = useState<StorageFileItem | null>(null)
+  const [newReplacementFile, setNewReplacementFile] = useState<File | null>(null)
+  const [newReplacementPreview, setNewReplacementPreview] = useState<string | null>(null)
+
   // Upload dialog state
   const [uploadOpen, setUploadOpen] = useState(false)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
@@ -84,12 +98,17 @@ export function StorageManager({
 
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const replaceInputRef = useRef<HTMLInputElement>(null)
 
-  // Load items when currentPath changes
-  async function loadData(path = currentPath) {
+  // Load items when currentPath or currentBucket changes
+  async function loadData(path = currentPath, bucket = currentBucket) {
     setLoading(true)
     try {
-      const data = await listStorageItems(path)
+      const [bucketsList, data] = await Promise.all([
+        listStorageBuckets(),
+        listStorageItems(path, bucket),
+      ])
+      setBuckets(bucketsList)
       setItems(data.items)
       setAllFolders(data.allFolders)
     } catch {
@@ -100,9 +119,9 @@ export function StorageManager({
   }
 
   useEffect(() => {
-    loadData(currentPath)
+    loadData(currentPath, currentBucket)
     setUploadTargetFolder(currentPath)
-  }, [currentPath])
+  }, [currentPath, currentBucket])
 
   // Breadcrumbs helper
   const pathSegments = currentPath ? currentPath.split("/").filter(Boolean) : []
@@ -123,11 +142,11 @@ export function StorageManager({
 
     startTransition(async () => {
       try {
-        await createFolder(currentPath, newFolderName)
+        await createFolder(currentPath, newFolderName, currentBucket)
         toast.success(`Carpeta "${newFolderName}" creada correctamente`)
         setCreateFolderOpen(false)
         setNewFolderName("")
-        await loadData(currentPath)
+        await loadData(currentPath, currentBucket)
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al crear la carpeta"
         toast.error(msg)
@@ -141,15 +160,14 @@ export function StorageManager({
 
     startTransition(async () => {
       try {
-        await renameFolder(folderToRename, renamedFolderName)
+        await renameFolder(folderToRename, renamedFolderName, currentBucket)
         toast.success(`Carpeta renombrada a "${renamedFolderName}"`)
         setRenameFolderOpen(false)
         if (currentPath === folderToRename || currentPath.startsWith(folderToRename + "/")) {
-          // If we were inside the renamed folder, navigate up
           const parent = folderToRename.split("/").slice(0, -1).join("/")
           setCurrentPath(parent ? `${parent}/${renamedFolderName}` : renamedFolderName)
         } else {
-          await loadData(currentPath)
+          await loadData(currentPath, currentBucket)
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al renombrar la carpeta"
@@ -161,14 +179,14 @@ export function StorageManager({
   function handleDeleteFolderSubmit() {
     startTransition(async () => {
       try {
-        await deleteFolder(folderToDelete)
+        await deleteFolder(folderToDelete, currentBucket)
         toast.success(`Carpeta y contenidos eliminados`)
         setDeleteFolderOpen(false)
         if (currentPath === folderToDelete || currentPath.startsWith(folderToDelete + "/")) {
           const parent = folderToDelete.split("/").slice(0, -1).join("/")
           setCurrentPath(parent)
         } else {
-          await loadData(currentPath)
+          await loadData(currentPath, currentBucket)
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al eliminar la carpeta"
@@ -182,13 +200,56 @@ export function StorageManager({
     if (!fileToDelete) return
     startTransition(async () => {
       try {
-        await deleteStorageFile(fileToDelete.path)
+        await deleteStorageFile(fileToDelete.path, currentBucket)
         toast.success(`Archivo "${fileToDelete.name}" eliminado`)
         setDeleteFileOpen(false)
         setFileToDelete(null)
-        await loadData(currentPath)
+        await loadData(currentPath, currentBucket)
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al eliminar el archivo"
+        toast.error(msg)
+      }
+    })
+  }
+
+  // Replace Actions
+  function handleReplaceFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setNewReplacementFile(file)
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader()
+      reader.onload = () => setNewReplacementPreview(reader.result as string)
+      reader.readAsDataURL(file)
+    } else {
+      setNewReplacementPreview(null)
+    }
+  }
+
+  function handleReplaceFileSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!fileToReplace || !newReplacementFile) {
+      toast.error("Selecciona un archivo de reemplazo")
+      return
+    }
+
+    startTransition(async () => {
+      try {
+        const formData = new FormData()
+        formData.append("file", newReplacementFile)
+
+        const res = await replaceStorageFile(fileToReplace.path, formData, currentBucket)
+        toast.success(`Archivo "${res.name}" reemplazado con éxito`)
+
+        setReplaceFileOpen(false)
+        setFileToReplace(null)
+        setNewReplacementFile(null)
+        setNewReplacementPreview(null)
+
+        await loadData(currentPath, currentBucket)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Error al reemplazar el archivo"
         toast.error(msg)
       }
     })
@@ -200,7 +261,6 @@ export function StorageManager({
     if (!file) return
 
     setUploadFile(file)
-    // Suggest clean slug filename without extension
     const baseName = file.name
       .replace(/\.[^/.]+$/, "")
       .toLowerCase()
@@ -229,8 +289,8 @@ export function StorageManager({
         const formData = new FormData()
         formData.append("file", uploadFile)
 
-        const res = await uploadStorageFile(uploadTargetFolder, customFileName, formData)
-        toast.success(`Imagen "${res.name}" subida con éxito`)
+        const res = await uploadStorageFile(uploadTargetFolder, customFileName, formData, currentBucket)
+        toast.success(`Archivo "${res.name}" subido con éxito`)
 
         setUploadOpen(false)
         setUploadFile(null)
@@ -243,7 +303,7 @@ export function StorageManager({
           if (uploadTargetFolder !== currentPath) {
             setCurrentPath(uploadTargetFolder)
           } else {
-            await loadData(currentPath)
+            await loadData(currentPath, currentBucket)
           }
         }
       } catch (err) {
@@ -266,6 +326,9 @@ export function StorageManager({
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const folderItems = filteredItems.filter((i) => i.isFolder)
+  const fileItems = filteredItems.filter((i) => !i.isFolder)
+
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return ""
     if (bytes < 1024) return `${bytes} B`
@@ -276,41 +339,65 @@ export function StorageManager({
   return (
     <div className="space-y-4">
       {/* Top Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-1.5 flex-wrap text-sm">
-          <button
-            type="button"
-            onClick={() => navigateToSegment(-1)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-              currentPath === ""
-                ? "bg-slate-100 text-slate-800"
-                : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-            }`}
-          >
-            <Home className="h-3.5 w-3.5" />
-            <span>Raíz (Storage)</span>
-          </button>
-
-          {pathSegments.map((segment, idx) => (
-            <div key={idx} className="flex items-center gap-1">
-              <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <button
-                type="button"
-                onClick={() => navigateToSegment(idx)}
-                className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                  idx === pathSegments.length - 1
-                    ? "bg-blue-50 text-blue-700 font-bold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                }`}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Left Side: Bucket Switcher & Breadcrumbs */}
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          {/* Bucket Switcher */}
+          {buckets.length > 1 && (
+            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 shrink-0">
+              <Database className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+              <select
+                value={currentBucket}
+                onChange={(e) => {
+                  setCurrentBucket(e.target.value)
+                  setCurrentPath("")
+                }}
+                className="bg-transparent border-none text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer pr-1"
               >
-                {segment}
-              </button>
+                {buckets.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    Bucket: {b.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
+          )}
+
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <button
+              type="button"
+              onClick={() => navigateToSegment(-1)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
+                currentPath === ""
+                  ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent"
+              }`}
+            >
+              <Home className="h-3.5 w-3.5" />
+              <span>Raíz</span>
+            </button>
+
+            {pathSegments.map((segment, idx) => (
+              <div key={idx} className="flex items-center gap-1 shrink-0">
+                <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <button
+                  type="button"
+                  onClick={() => navigateToSegment(idx)}
+                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                    idx === pathSegments.length - 1
+                      ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent"
+                  }`}
+                >
+                  {segment}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Right Side: Action Buttons */}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             type="button"
@@ -319,8 +406,8 @@ export function StorageManager({
             onClick={() => setCreateFolderOpen(true)}
             className="gap-1.5 text-xs font-semibold bg-white text-slate-700 border-slate-300 hover:bg-slate-50 h-8"
           >
-            <FolderPlus className="h-3.5 w-3.5 text-amber-500" />
-            <span>Nueva Carpeta</span>
+            <FolderPlus className="h-3.5 w-3.5 text-blue-600" />
+            Nueva Carpeta
           </Button>
 
           <Button
@@ -333,246 +420,461 @@ export function StorageManager({
             className="gap-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white h-8 shadow-2xs"
           >
             <Upload className="h-3.5 w-3.5" />
-            <span>Subir Imagen</span>
+            Subir Archivo
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => loadData(currentPath, currentBucket)}
+            disabled={loading}
+            className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800"
+            title="Recargar"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>
 
-      {/* Sub-toolbar: Current folder management + Search */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          {currentPath && (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => navigateToSegment(pathSegments.length - 2)}
-                className="h-8 text-xs font-medium text-slate-600 hover:bg-slate-100 gap-1.5 px-2.5"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Volver</span>
-              </Button>
-
-              <div className="h-4 w-px bg-slate-200" />
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setFolderToRename(currentPath)
-                  setRenamedFolderName(pathSegments[pathSegments.length - 1] || "")
-                  setRenameFolderOpen(true)
-                }}
-                className="h-8 text-xs font-medium text-slate-600 hover:text-slate-900 gap-1.5 px-2.5 bg-white border-slate-200"
-              >
-                <Edit2 className="h-3.5 w-3.5 text-blue-500" />
-                <span>Renombrar</span>
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setFolderToDelete(currentPath)
-                  setDeleteFolderOpen(true)
-                }}
-                className="h-8 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 gap-1.5 px-2.5 bg-white border-red-200"
-              >
-                <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                <span>Eliminar carpeta</span>
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Search */}
-        <div className="relative max-w-xs w-full">
+      {/* Search Bar & Stats */}
+      <div className="flex items-center justify-between gap-3 px-1">
+        <div className="relative w-full max-w-xs">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <Input
-            type="text"
-            placeholder="Buscar por nombre..."
+            placeholder="Buscar en esta carpeta..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-8 text-xs bg-white"
+            className="pl-8 h-8 text-xs bg-white border-slate-200"
           />
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <span>
+            {folderItems.length} carpetas · {fileItems.length} archivos
+          </span>
         </div>
       </div>
 
-      {/* Main Grid View */}
+      {/* Content View */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-white rounded-xl border border-slate-200">
-          <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mb-2" />
-          <p className="text-xs">Cargando archivos del Storage...</p>
+        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-2xs">
+          <RefreshCw className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
+          <p className="text-sm font-medium text-slate-600">Cargando contenidos del Storage...</p>
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">
-          <Folder className="h-10 w-10 text-slate-300 mb-2" />
-          <p className="text-sm font-semibold text-slate-600">Esta carpeta está vacía</p>
-          <p className="text-xs text-slate-400 mt-1 max-w-xs text-center">
-            Crea una nueva subcarpeta o pulsa en &quot;Subir Imagen&quot; para añadir contenido.
+        <div className="bg-white rounded-xl border border-dashed border-slate-200 p-12 text-center shadow-2xs">
+          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3 text-slate-400">
+            <Layers className="h-6 w-6" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-800 mb-1">
+            {searchQuery ? "No se encontraron resultados" : "Carpeta vacía"}
+          </h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">
+            {searchQuery
+              ? `No hay elementos que coincidan con "${searchQuery}"`
+              : "No hay archivos ni subcarpetas aquí. Puedes crear una carpeta o subir una imagen."}
           </p>
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCreateFolderOpen(true)}
+              className="text-xs gap-1.5"
+            >
+              <FolderPlus className="h-3.5 w-3.5 text-blue-600" />
+              Crear Carpeta
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                setUploadTargetFolder(currentPath)
+                setUploadOpen(true)
+              }}
+              className="text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Subir Archivo
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {filteredItems.map((item) => {
-            if (item.isFolder) {
-              return (
-                <div
-                  key={item.path}
-                  onClick={() => setCurrentPath(item.path)}
-                  className="group relative flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/20 hover:shadow-xs transition-all cursor-pointer text-center"
-                >
-                  <div className="p-3 rounded-xl bg-amber-100/70 group-hover:bg-amber-200/80 text-amber-600 mb-2 transition-colors">
-                    <Folder className="h-7 w-7" />
-                  </div>
-                  <span className="text-xs font-semibold text-slate-800 line-clamp-1 w-full" title={item.name}>
-                    {item.name}
-                  </span>
-                  <span className="text-[10px] text-slate-400 mt-0.5">Carpeta</span>
-                </div>
-              )
-            }
+        <div className="space-y-5">
+          {/* FOLDERS IN LIST FORMAT */}
+          {folderItems.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1.5">
+                <Folder className="h-3.5 w-3.5 text-blue-600" />
+                <span>Carpetas ({folderItems.length})</span>
+              </h4>
 
-            // Image / File card
-            const isImage = item.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(item.name)
-
-            return (
-              <div
-                key={item.path}
-                className="group relative flex flex-col bg-white rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all overflow-hidden"
-              >
-                {/* Thumbnail */}
-                <div className="relative aspect-square bg-slate-100 overflow-hidden flex items-center justify-center">
-                  {isImage && item.url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.url}
-                      alt={item.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
-                      <FileText className="h-8 w-8 text-slate-300 mb-1" />
-                      <span className="text-[10px] uppercase font-bold text-slate-400">
-                        {item.name.split(".").pop()}
-                      </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                {folderItems.map((item) => (
+                  <div
+                    key={item.path}
+                    onClick={() => setCurrentPath(item.path)}
+                    className="group flex items-center justify-between gap-2.5 bg-white rounded-xl border border-slate-200 px-3.5 py-2.5 shadow-2xs hover:shadow-xs hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Folder className="h-4 w-4 fill-blue-100" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 truncate" title={item.name}>
+                          {item.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400">Carpeta</p>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Overlay buttons on hover */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
-                    {isImage && item.url && (
-                      <Button
+                    <div
+                      className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
                         type="button"
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setPreviewImage(item.url || null)
+                        onClick={() => {
+                          setFolderToRename(item.path)
+                          setRenamedFolderName(item.name)
+                          setRenameFolderOpen(true)
                         }}
-                        className="h-7 w-7 p-0 bg-white/90 hover:bg-white text-slate-800 rounded-full shadow"
-                        title="Previsualizar"
+                        className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                        title="Renombrar carpeta"
                       >
-                        <Eye className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        copyToClipboard(item.url)
-                      }}
-                      className="h-7 w-7 p-0 bg-white/90 hover:bg-white text-slate-800 rounded-full shadow"
-                      title="Copiar enlace público"
-                    >
-                      {copiedPath === item.url ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-                    </Button>
-
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFileToDelete(item)
-                        setDeleteFileOpen(true)
-                      }}
-                      className="h-7 w-7 p-0 bg-white/90 hover:bg-red-50 text-red-600 rounded-full shadow"
-                      title="Eliminar archivo"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFolderToDelete(item.path)
+                          setDeleteFolderOpen(true)
+                        }}
+                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        title="Eliminar carpeta"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-
-                {/* Card footer */}
-                <div className="p-2 space-y-1.5 flex flex-col justify-between flex-1">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-800 line-clamp-1 block" title={item.name}>
-                      {item.name}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono block">
-                      {formatFileSize(item.size)}
-                    </span>
-                  </div>
-
-                  {/* If in picker mode, provide a Select button */}
-                  {pickerMode && onSelectFile && item.url && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => onSelectFile(item.url!)}
-                      className="w-full h-7 text-[11px] font-semibold bg-blue-600 hover:bg-blue-700 text-white gap-1"
-                    >
-                      <CheckCircle2 className="h-3 w-3" />
-                      <span>Seleccionar</span>
-                    </Button>
-                  )}
-                </div>
+                ))}
               </div>
-            )
-          })}
+            </div>
+          )}
+
+          {/* FILES IN GRID FORMAT */}
+          {fileItems.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-blue-600" />
+                <span>Archivos ({fileItems.length})</span>
+              </h4>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                {fileItems.map((item) => {
+                  const isImage = item.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(item.name)
+                  const isPdf = item.mimeType === "application/pdf" || item.name.endsWith(".pdf")
+
+                  return (
+                    <div
+                      key={item.path}
+                      className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between"
+                    >
+                      {/* Thumbnail / Preview */}
+                      <div
+                        className="relative aspect-4/3 bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100 cursor-pointer"
+                        onClick={() => {
+                          if (pickerMode && onSelectFile && item.url) {
+                            onSelectFile(item.url)
+                          } else if (isImage && item.url) {
+                            setPreviewImage(item.url)
+                          }
+                        }}
+                      >
+                        {isImage && item.url ? (
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : isPdf ? (
+                          <div className="flex flex-col items-center justify-center gap-1 text-red-500">
+                            <FileText className="h-8 w-8" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">PDF</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-1 text-slate-400">
+                            <FileText className="h-8 w-8" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Archivo</span>
+                          </div>
+                        )}
+
+                        {/* Hover Overlay Controls */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+                          {pickerMode && onSelectFile && item.url && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onSelectFile(item.url!)
+                              }}
+                              className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                              Seleccionar
+                            </Button>
+                          )}
+
+                          {isImage && item.url && !pickerMode && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setPreviewImage(item.url!)
+                              }}
+                              className="p-1.5 rounded-lg bg-white/90 text-slate-700 hover:bg-white transition-colors"
+                              title="Vista previa"
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setFileToReplace(item)
+                              setNewReplacementFile(null)
+                              setNewReplacementPreview(null)
+                              setReplaceFileOpen(true)
+                            }}
+                            className="p-1.5 rounded-lg bg-white/90 text-blue-700 hover:bg-white hover:text-blue-800 transition-colors"
+                            title="Reemplazar archivo"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </button>
+
+                          {item.url && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                copyToClipboard(item.url)
+                              }}
+                              className="p-1.5 rounded-lg bg-white/90 text-slate-700 hover:bg-white transition-colors"
+                              title="Copiar URL"
+                            >
+                              {copiedPath === item.url ? (
+                                <Check className="h-3.5 w-3.5 text-green-600" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          )}
+
+                          {item.url && (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1.5 rounded-lg bg-white/90 text-slate-700 hover:bg-white transition-colors"
+                              title="Abrir en pestaña nueva"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Info Footer */}
+                      <div className="p-2.5 flex items-center justify-between gap-1">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-800 truncate" title={item.name}>
+                            {item.name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {formatFileSize(item.size)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFileToReplace(item)
+                              setNewReplacementFile(null)
+                              setNewReplacementPreview(null)
+                              setReplaceFileOpen(true)
+                            }}
+                            className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                            title="Reemplazar archivo"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFileToDelete(item)
+                              setDeleteFileOpen(true)
+                            }}
+                            className="p-1 rounded text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Eliminar archivo"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 1. Dialog: Create Folder */}
-      <Dialog open={createFolderOpen} onOpenChange={setCreateFolderOpen}>
-        <DialogContent className="max-w-md">
+      {/* REPLACE FILE DIALOG */}
+      <Dialog open={replaceFileOpen} onOpenChange={setReplaceFileOpen}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-slate-900">
-              <FolderPlus className="h-5 w-5 text-amber-500" />
-              <span>Nueva Carpeta</span>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+              <RefreshCw className="h-5 w-5 text-blue-600" />
+              Reemplazar Imagen / Archivo
             </DialogTitle>
-            <DialogDescription>
-              Se creará dentro de: <strong className="text-slate-700">{currentPath ? `/${currentPath}` : "/ (Raíz)"}</strong>
+            <DialogDescription className="text-xs">
+              Selecciona un nuevo archivo para sustituir{" "}
+              <span className="font-semibold text-slate-800">{fileToReplace?.name}</span>. Se conservará la misma URL pública.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateFolderSubmit} className="space-y-4">
+
+          <form onSubmit={handleReplaceFileSubmit} className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              {/* Current Version */}
+              <div className="text-center space-y-1.5">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actual</span>
+                <div className="aspect-4/3 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-1">
+                  {fileToReplace?.url && (fileToReplace.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(fileToReplace.name)) ? (
+                    <img src={fileToReplace.url} alt="Actual" className="w-full h-full object-contain" />
+                  ) : (
+                    <FileText className="h-8 w-8 text-slate-400" />
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400 truncate" title={fileToReplace?.name}>{fileToReplace?.name}</p>
+              </div>
+
+              {/* New Version */}
+              <div className="text-center space-y-1.5">
+                <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">Nueva Versión</span>
+                <div
+                  onClick={() => replaceInputRef.current?.click()}
+                  className={`aspect-4/3 rounded-lg overflow-hidden border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors p-1 ${
+                    newReplacementPreview
+                      ? "bg-white border-blue-400"
+                      : "bg-blue-50/40 border-blue-300 hover:bg-blue-50/70"
+                  }`}
+                >
+                  {newReplacementPreview ? (
+                    <img src={newReplacementPreview} alt="Nueva" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 p-2 text-blue-600">
+                      <Upload className="h-6 w-6" />
+                      <span className="text-[10px] font-semibold">Seleccionar archivo</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-blue-600 font-medium truncate" title={newReplacementFile?.name}>
+                  {newReplacementFile ? newReplacementFile.name : "Ningún archivo elegido"}
+                </p>
+              </div>
+            </div>
+
+            <input
+              ref={replaceInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleReplaceFileSelected}
+              accept="image/*,application/pdf,video/*"
+            />
+
+            <div className="rounded-lg bg-blue-50/60 p-2.5 border border-blue-100 flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800">
+                La imagen anterior será sustituida en el Storage. Todos los productos, catálogos y páginas que usan esta URL se actualizarán automáticamente.
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setReplaceFileOpen(false)}
+                className="text-xs"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending || !newReplacementFile}
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isPending ? "animate-spin" : ""}`} />
+                {isPending ? "Reemplazando..." : "Confirmar Reemplazo"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* CREATE FOLDER DIALOG */}
+      <Dialog open={createFolderOpen} onOpenChange={setCreateFolderOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <FolderPlus className="h-5 w-5 text-blue-600" />
+              Crear Nueva Carpeta
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Ubicación: <span className="font-semibold text-slate-800">/{currentPath || "raíz"}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateFolderSubmit} className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Nombre de la carpeta *</Label>
+              <Label className="text-xs">Nombre de la carpeta</Label>
               <Input
-                placeholder="Ej: rejillas, banners, 2026, fichas..."
+                placeholder="ej: productos, rejillas, descargas..."
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 autoFocus
-                required
+                className="text-xs"
               />
               <p className="text-[11px] text-slate-400">
-                Se formateará automáticamente en minúsculas sin espacios ni caracteres especiales.
+                Se formateará automáticamente en minúsculas y sin espacios.
               </p>
             </div>
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCreateFolderOpen(false)} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCreateFolderOpen(false)}
+                className="text-xs"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isPending || !newFolderName.trim()} className="bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending || !newFolderName.trim()}
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 {isPending ? "Creando..." : "Crear Carpeta"}
               </Button>
             </DialogFooter>
@@ -580,33 +882,43 @@ export function StorageManager({
         </DialogContent>
       </Dialog>
 
-      {/* 2. Dialog: Rename Folder */}
+      {/* RENAME FOLDER DIALOG */}
       <Dialog open={renameFolderOpen} onOpenChange={setRenameFolderOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-slate-900">
+            <DialogTitle className="flex items-center gap-2 text-base">
               <Edit2 className="h-5 w-5 text-blue-600" />
-              <span>Renombrar Carpeta</span>
+              Renombrar Carpeta
             </DialogTitle>
-            <DialogDescription>
-              ¿Deseas renombrar la carpeta <strong>{folderToRename}</strong>? Los enlaces de los archivos dentro de ella se actualizarán a la nueva ruta.
-            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleRenameFolderSubmit} className="space-y-4">
+
+          <form onSubmit={handleRenameFolderSubmit} className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Nuevo nombre *</Label>
+              <Label className="text-xs">Nuevo nombre</Label>
               <Input
                 value={renamedFolderName}
                 onChange={(e) => setRenamedFolderName(e.target.value)}
                 autoFocus
-                required
+                className="text-xs"
               />
             </div>
+
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setRenameFolderOpen(false)} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setRenameFolderOpen(false)}
+                className="text-xs"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isPending || !renamedFolderName.trim()} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending || !renamedFolderName.trim()}
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 {isPending ? "Renombrando..." : "Guardar Cambios"}
               </Button>
             </DialogFooter>
@@ -614,210 +926,208 @@ export function StorageManager({
         </DialogContent>
       </Dialog>
 
-      {/* 3. Dialog: Delete Folder Confirmation */}
+      {/* DELETE FOLDER CONFIRMATION DIALOG */}
       <Dialog open={deleteFolderOpen} onOpenChange={setDeleteFolderOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <span>Confirmar Eliminación de Carpeta</span>
+            <DialogTitle className="flex items-center gap-2 text-red-600 text-base">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Eliminar carpeta y sus contenidos?
             </DialogTitle>
-            <DialogDescription className="text-slate-600 text-xs">
-              Esta acción es irreversible. Se eliminará la carpeta <strong className="text-red-700">/{folderToDelete}</strong> y <strong>todos los archivos contenidos en ella</strong>.
+            <DialogDescription className="text-xs">
+              Estás a punto de eliminar la carpeta <span className="font-semibold text-slate-800">/{folderToDelete}</span>.
+              Todos los archivos y subcarpetas que contenga serán eliminados permanentemente del Storage.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800">
-            ⚠️ Si algún producto o artículo utiliza imágenes de esta carpeta, dejarán de visualizarse.
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeleteFolderOpen(false)} disabled={isPending}>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteFolderOpen(false)}
+              className="text-xs"
+            >
               Cancelar
             </Button>
-            <Button type="button" onClick={handleDeleteFolderSubmit} disabled={isPending} className="bg-red-600 hover:bg-red-700 text-white font-semibold">
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isPending}
+              onClick={handleDeleteFolderSubmit}
+              className="text-xs"
+            >
               {isPending ? "Eliminando..." : "Sí, Eliminar Carpeta"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 4. Dialog: Delete File Confirmation */}
+      {/* DELETE FILE CONFIRMATION DIALOG */}
       <Dialog open={deleteFileOpen} onOpenChange={setDeleteFileOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Trash2 className="h-5 w-5 text-red-600" />
-              <span>Eliminar Archivo</span>
+            <DialogTitle className="flex items-center gap-2 text-red-600 text-base">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Eliminar archivo?
             </DialogTitle>
-            <DialogDescription className="text-slate-600 text-xs">
-              ¿Estás seguro de que deseas eliminar permanentemente el archivo <strong className="text-slate-900">{fileToDelete?.name}</strong>?
+            <DialogDescription className="text-xs">
+              ¿Seguro que deseas eliminar <span className="font-semibold text-slate-800">{fileToDelete?.name}</span>?
+              Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setDeleteFileOpen(false)} disabled={isPending}>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteFileOpen(false)}
+              className="text-xs"
+            >
               Cancelar
             </Button>
-            <Button type="button" onClick={handleDeleteFileSubmit} disabled={isPending} className="bg-red-600 hover:bg-red-700 text-white font-semibold">
-              {isPending ? "Eliminando..." : "Eliminar Archivo"}
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isPending}
+              onClick={handleDeleteFileSubmit}
+              className="text-xs"
+            >
+              {isPending ? "Eliminando..." : "Eliminar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 5. Dialog: Upload Image with Custom Folder and Name */}
+      {/* UPLOAD FILE DIALOG */}
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-slate-900">
+            <DialogTitle className="flex items-center gap-2 text-base">
               <Upload className="h-5 w-5 text-blue-600" />
-              <span>Cargar Imagen al Storage</span>
+              Subir Archivo al Storage
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Elige la carpeta de destino y el nombre del archivo para mantener organizado tu almacenamiento.
+              Selecciona el archivo, elige la carpeta de destino y personaliza su nombre.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleUploadSubmit} className="space-y-4">
-            {/* File drop / select area */}
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-5 text-center cursor-pointer bg-slate-50 hover:bg-blue-50/20 transition-all"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,.stl,.pdf"
-                onChange={handleFileSelected}
-                className="hidden"
-              />
-              {uploadPreview ? (
-                <div className="flex flex-col items-center gap-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={uploadPreview}
-                    alt="Preview"
-                    className="max-h-36 max-w-full rounded-lg object-contain border border-slate-200 bg-white"
-                  />
-                  <span className="text-xs font-semibold text-blue-600">
-                    Hacer clic para cambiar archivo ({uploadFile?.name})
-                  </span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="p-3 bg-blue-100 text-blue-600 rounded-full">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                  <p className="text-xs font-semibold text-slate-700">
-                    Haz clic para seleccionar una imagen de tu equipo
-                  </p>
-                  <p className="text-[11px] text-slate-400">Soporta JPG, PNG, WEBP, GIF, SVG</p>
-                </div>
-              )}
-            </div>
-
-            {/* Target Folder Selector */}
+          <form onSubmit={handleUploadSubmit} className="space-y-4 py-2">
+            {/* Folder Destination Selector */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Carpeta de destino *</Label>
+              <Label className="text-xs font-semibold text-slate-700">Carpeta de destino</Label>
               <select
                 value={uploadTargetFolder}
                 onChange={(e) => setUploadTargetFolder(e.target.value)}
-                className="w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs focus:ring-2 focus:ring-blue-500"
+                className="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">/ (Carpeta Raíz)</option>
+                <option value="">Raíz (/)</option>
                 {allFolders
-                  .filter((f) => f !== "")
-                  .map((f) => (
-                    <option key={f} value={f}>
-                      📁 /{f}
+                  .filter((f) => Boolean(f))
+                  .map((folder) => (
+                    <option key={folder} value={folder}>
+                      📁 /{folder}
                     </option>
                   ))}
               </select>
             </div>
 
-            {/* Custom File Name Input */}
+            {/* File Drop / Select Area */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                uploadFile
+                  ? "border-blue-400 bg-blue-50/30"
+                  : "border-slate-200 hover:border-slate-300 bg-slate-50/50"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileSelected}
+                accept="image/*,application/pdf,video/*"
+              />
+
+              {uploadPreview ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="relative w-32 h-24 rounded-lg overflow-hidden border border-slate-200 bg-white">
+                    <img src={uploadPreview} alt="Preview" className="w-full h-full object-contain" />
+                  </div>
+                  <p className="text-xs text-blue-600 font-medium">Clic para cambiar archivo</p>
+                </div>
+              ) : uploadFile ? (
+                <div className="flex flex-col items-center gap-1 text-slate-700">
+                  <FileText className="h-8 w-8 text-blue-600" />
+                  <p className="text-xs font-medium">{uploadFile.name}</p>
+                  <p className="text-[10px] text-slate-400">{formatFileSize(uploadFile.size)}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1.5 py-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Upload className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-700">
+                    Haz clic para seleccionar o arrastra un archivo
+                  </p>
+                  <p className="text-[10px] text-slate-400">Imágenes (PNG, JPG, WebP), PDF, etc.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Custom Filename Input */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Nombre personalizado del archivo *</Label>
-              <div className="flex items-center gap-1.5">
-                <Input
-                  value={customFileName}
-                  onChange={(e) => setCustomFileName(e.target.value)}
-                  placeholder="Ej: rejilla-lineal-blanco-frontal"
-                  className="text-xs font-mono"
-                  required
-                />
-                <span className="text-xs font-mono font-semibold text-slate-500 bg-slate-100 px-2.5 py-2 rounded-lg border border-slate-200">
-                  {uploadFile?.name.includes(".") ? `.${uploadFile.name.split(".").pop()?.toLowerCase()}` : ".jpg"}
-                </span>
-              </div>
+              <Label className="text-xs font-semibold text-slate-700">Nombre del archivo (sin extensión)</Label>
+              <Input
+                placeholder="ej: rejilla-lineal-blanco"
+                value={customFileName}
+                onChange={(e) => setCustomFileName(e.target.value)}
+                className="text-xs font-mono"
+              />
               <p className="text-[11px] text-slate-400">
-                Se guardará como: <code className="text-blue-600 font-mono">/{uploadTargetFolder ? `${uploadTargetFolder}/` : ""}{customFileName || "nombre"}.{uploadFile?.name.split(".").pop() || "jpg"}</code>
+                Se guardará con la extensión original del archivo seleccionado.
               </p>
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setUploadOpen(false)} disabled={isPending}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setUploadOpen(false)}
+                className="text-xs"
+              >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                disabled={isPending || !uploadFile || !customFileName.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold gap-1.5"
+                size="sm"
+                disabled={isPending || !uploadFile}
+                className="text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
               >
-                {isPending ? (
-                  <>
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    Subiendo archivo...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-3.5 w-3.5" />
-                    Confirmar y Subir
-                  </>
-                )}
+                <Upload className="h-3.5 w-3.5" />
+                {isPending ? "Subiendo..." : "Subir al Storage"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* 6. Preview Modal for Full Size Image */}
-      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-        <DialogContent className="max-w-3xl p-3 bg-black/90 text-white border-0">
-          <div className="flex flex-col items-center justify-center p-2">
-            {previewImage && (
-              // eslint-disable-next-line @next/next/no-img-element
+      {/* FULL PREVIEW MODAL */}
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-slate-950 border-slate-800">
+          {previewImage && (
+            <div className="relative w-full aspect-video flex items-center justify-center overflow-hidden rounded-lg">
               <img
                 src={previewImage}
                 alt="Vista previa"
-                className="max-h-[80vh] w-auto object-contain rounded-lg shadow-2xl"
+                className="max-h-[80vh] w-auto object-contain mx-auto"
               />
-            )}
-            <div className="mt-3 flex items-center gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(previewImage || undefined)}
-                className="text-xs bg-white/10 text-white border-white/20 hover:bg-white/20 gap-1.5"
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Copiar URL
-              </Button>
-              {previewImage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="text-xs bg-white/10 text-white border-white/20 hover:bg-white/20 gap-1.5"
-                >
-                  <a href={previewImage} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    Abrir en pestaña nueva
-                  </a>
-                </Button>
-              )}
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -3,7 +3,13 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
-const BUCKET_NAME = "media"
+const DEFAULT_BUCKET = "images"
+
+export interface StorageBucketItem {
+  id: string
+  name: string
+  isPublic: boolean
+}
 
 export interface StorageFileItem {
   id: string
@@ -19,62 +25,112 @@ export interface StorageFileItem {
 /**
  * Ensures the target public bucket exists.
  */
-async function ensureBucket() {
+async function ensureBucket(bucketName = DEFAULT_BUCKET) {
   const supabase = await createServerClient()
-  const { data: buckets } = await supabase.storage.listBuckets()
-  const exists = buckets?.some((b) => b.name === BUCKET_NAME || b.id === BUCKET_NAME)
+  try {
+    const { data: buckets } = await supabase.storage.listBuckets()
+    const exists = buckets?.some((b) => b.name === bucketName || b.id === bucketName)
 
-  if (!exists) {
-    try {
-      await supabase.storage.createBucket(BUCKET_NAME, {
+    if (!exists && bucketName === DEFAULT_BUCKET) {
+      await supabase.storage.createBucket(DEFAULT_BUCKET, {
         public: true,
         fileSizeLimit: 25 * 1024 * 1024, // 25MB
         allowedMimeTypes: ["image/*", "application/pdf", "video/*", "model/*", "application/octet-stream"],
       })
-    } catch {
-      // Ignore if cannot create, might fallback to contact-attachments or existing
     }
+  } catch {
+    // Ignore if bucket creation not permitted
   }
 }
 
 /**
- * List files and folders inside a given path in the bucket.
+ * List all available storage buckets in Supabase.
  */
-export async function listStorageItems(currentPath = ""): Promise<{
+export async function listStorageBuckets(): Promise<StorageBucketItem[]> {
+  const supabase = await createServerClient()
+  try {
+    const { data: buckets, error } = await supabase.storage.listBuckets()
+    if (error || !buckets || buckets.length === 0) {
+      return [
+        { id: "images", name: "images", isPublic: true },
+        { id: "media", name: "media", isPublic: true },
+        { id: "contact-attachments", name: "contact-attachments", isPublic: true },
+      ]
+    }
+    const list = buckets.map((b) => ({
+      id: b.id || b.name,
+      name: b.name || b.id,
+      isPublic: b.public ?? true,
+    }))
+    // Ensure "images" is sorted first if present
+    list.sort((a, b) => {
+      if (a.name === "images") return -1
+      if (b.name === "images") return 1
+      return a.name.localeCompare(b.name)
+    })
+    return list
+  } catch {
+    return [{ id: "images", name: "images", isPublic: true }]
+  }
+}
+
+/**
+ * Helper to check if an object returned by Supabase Storage is a folder.
+ */
+function isFolderItem(obj: { id?: string | null; name: string; metadata?: Record<string, unknown> | null }): boolean {
+  if (!obj.id || obj.id === null) return true
+  if (!obj.metadata || obj.metadata === null) return true
+  if (!obj.metadata.mimetype && !obj.name.includes(".")) return true
+  return false
+}
+
+/**
+ * List files and folders inside a given path in the specified bucket.
+ */
+export async function listStorageItems(
+  currentPath = "",
+  bucketName = DEFAULT_BUCKET
+): Promise<{
   items: StorageFileItem[]
   allFolders: string[]
+  currentBucket: string
 }> {
-  await ensureBucket()
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
 
   const cleanPath = currentPath.replace(/^\/+|\/+$/g, "")
+  const targetBucket = bucketName || DEFAULT_BUCKET
 
   // List objects in current path
-  const { data: objects, error } = await supabase.storage.from(BUCKET_NAME).list(cleanPath, {
-    limit: 200,
+  const { data: objects, error } = await supabase.storage.from(targetBucket).list(cleanPath || undefined, {
+    limit: 250,
     offset: 0,
     sortBy: { column: "name", order: "asc" },
   })
 
   if (error) {
-    // If bucket doesn't exist yet, return empty list
-    return { items: [], allFolders: [""] }
+    console.warn(`[admin-storage] Error listing path "${cleanPath}" in bucket "${targetBucket}":`, error.message)
+    return { items: [], allFolders: [""], currentBucket: targetBucket }
   }
 
-  // Find all folders in the bucket for dropdown selection (recursively or root level)
+  // Scan all existing folders recursively in the bucket for the folder dropdown
   const allFoldersSet = new Set<string>([""])
 
   const scanFolders = async (prefix = "", depth = 0) => {
-    if (depth > 4) return
-    const { data } = await supabase.storage.from(BUCKET_NAME).list(prefix, { limit: 100 })
-    if (data) {
-      for (const obj of data) {
-        if (!obj.id && obj.name && !obj.name.includes(".")) {
-          const folderPath = prefix ? `${prefix}/${obj.name}` : obj.name
-          allFoldersSet.add(folderPath)
-          await scanFolders(folderPath, depth + 1)
+    if (depth > 5) return
+    try {
+      const { data } = await supabase.storage.from(targetBucket).list(prefix || undefined, { limit: 150 })
+      if (data) {
+        for (const obj of data) {
+          if (isFolderItem(obj)) {
+            const folderPath = prefix ? `${prefix}/${obj.name}` : obj.name
+            allFoldersSet.add(folderPath)
+            await scanFolders(folderPath, depth + 1)
+          }
         }
       }
+    } catch {
+      // Continue scanning
     }
   }
 
@@ -85,13 +141,12 @@ export async function listStorageItems(currentPath = ""): Promise<{
   const items: StorageFileItem[] = (objects || [])
     .filter((obj) => obj.name !== ".emptyFolderPlaceholder" && obj.name !== ".keep")
     .map((obj) => {
-      // In Supabase storage, folders have obj.id === null or no metadata mimetype
-      const isFolder = !obj.id || (!obj.metadata?.mimetype && !obj.name.includes("."))
+      const isFolder = isFolderItem(obj)
       const itemPath = cleanPath ? `${cleanPath}/${obj.name}` : obj.name
 
       let url: string | undefined = undefined
       if (!isFolder) {
-        const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(itemPath)
+        const { data: publicUrlData } = supabase.storage.from(targetBucket).getPublicUrl(itemPath)
         url = publicUrlData?.publicUrl
       }
 
@@ -100,9 +155,9 @@ export async function listStorageItems(currentPath = ""): Promise<{
         name: obj.name,
         isFolder,
         path: itemPath,
-        size: obj.metadata?.size,
+        size: (obj.metadata as { size?: number })?.size,
         updatedAt: obj.updated_at || obj.created_at || undefined,
-        mimeType: obj.metadata?.mimetype,
+        mimeType: (obj.metadata as { mimetype?: string })?.mimetype,
         url,
       }
     })
@@ -111,21 +166,23 @@ export async function listStorageItems(currentPath = ""): Promise<{
   items.sort((a, b) => {
     if (a.isFolder && !b.isFolder) return -1
     if (!a.isFolder && b.isFolder) return 1
-    return a.name.localeCompare(b.name)
+    return a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
   })
 
   return {
     items,
     allFolders: Array.from(allFoldersSet).sort(),
+    currentBucket: targetBucket,
   }
 }
 
 /**
  * Create a new folder by creating a placeholder file.
  */
-export async function createFolder(parentPath: string, folderName: string) {
-  await ensureBucket()
+export async function createFolder(parentPath: string, folderName: string, bucketName = DEFAULT_BUCKET) {
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
 
   const cleanName = folderName
     .trim()
@@ -141,7 +198,7 @@ export async function createFolder(parentPath: string, folderName: string) {
   const newFolderPath = cleanParent ? `${cleanParent}/${cleanName}` : cleanName
   const placeholderPath = `${newFolderPath}/.emptyFolderPlaceholder`
 
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(placeholderPath, new Uint8Array(0), {
+  const { error } = await supabase.storage.from(targetBucket).upload(placeholderPath, new Uint8Array(0), {
     contentType: "text/plain",
     upsert: true,
   })
@@ -157,9 +214,10 @@ export async function createFolder(parentPath: string, folderName: string) {
 /**
  * Rename a folder by copying all objects to the new folder prefix and deleting the old ones.
  */
-export async function renameFolder(oldFolderPath: string, newFolderName: string) {
-  await ensureBucket()
+export async function renameFolder(oldFolderPath: string, newFolderName: string, bucketName = DEFAULT_BUCKET) {
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
 
   const cleanOld = oldFolderPath.replace(/^\/+|\/+$/g, "")
   const cleanName = newFolderName
@@ -180,12 +238,12 @@ export async function renameFolder(oldFolderPath: string, newFolderName: string)
 
   // List all files in old folder recursively
   const getAllFiles = async (prefix: string): Promise<string[]> => {
-    const { data } = await supabase.storage.from(BUCKET_NAME).list(prefix, { limit: 500 })
+    const { data } = await supabase.storage.from(targetBucket).list(prefix, { limit: 500 })
     let filePaths: string[] = []
     if (data) {
       for (const item of data) {
         const itemPath = `${prefix}/${item.name}`
-        if (!item.id && !item.name.includes(".")) {
+        if (isFolderItem(item)) {
           const sub = await getAllFiles(itemPath)
           filePaths = filePaths.concat(sub)
         } else {
@@ -199,14 +257,13 @@ export async function renameFolder(oldFolderPath: string, newFolderName: string)
   const files = await getAllFiles(cleanOld)
 
   if (files.length === 0) {
-    // If empty folder, just create new placeholder and remove old
-    await supabase.storage.from(BUCKET_NAME).upload(`${cleanNew}/.emptyFolderPlaceholder`, new Uint8Array(0), { upsert: true })
-    await supabase.storage.from(BUCKET_NAME).remove([`${cleanOld}/.emptyFolderPlaceholder`])
+    await supabase.storage.from(targetBucket).upload(`${cleanNew}/.emptyFolderPlaceholder`, new Uint8Array(0), { upsert: true })
+    await supabase.storage.from(targetBucket).remove([`${cleanOld}/.emptyFolderPlaceholder`])
   } else {
     for (const filePath of files) {
       const relative = filePath.substring(cleanOld.length + 1)
       const newFilePath = `${cleanNew}/${relative}`
-      await supabase.storage.from(BUCKET_NAME).move(filePath, newFilePath)
+      await supabase.storage.from(targetBucket).move(filePath, newFilePath)
     }
   }
 
@@ -217,20 +274,21 @@ export async function renameFolder(oldFolderPath: string, newFolderName: string)
 /**
  * Delete a folder and all its contents recursively.
  */
-export async function deleteFolder(folderPath: string) {
-  await ensureBucket()
+export async function deleteFolder(folderPath: string, bucketName = DEFAULT_BUCKET) {
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
 
   const cleanPath = folderPath.replace(/^\/+|\/+$/g, "")
   if (!cleanPath) throw new Error("No se puede eliminar la carpeta raíz.")
 
   const getAllFiles = async (prefix: string): Promise<string[]> => {
-    const { data } = await supabase.storage.from(BUCKET_NAME).list(prefix, { limit: 500 })
+    const { data } = await supabase.storage.from(targetBucket).list(prefix, { limit: 500 })
     let filePaths: string[] = []
     if (data) {
       for (const item of data) {
         const itemPath = `${prefix}/${item.name}`
-        if (!item.id && !item.name.includes(".")) {
+        if (isFolderItem(item)) {
           const sub = await getAllFiles(itemPath)
           filePaths = filePaths.concat(sub)
         } else {
@@ -242,11 +300,10 @@ export async function deleteFolder(folderPath: string) {
   }
 
   const files = await getAllFiles(cleanPath)
-  // Also include the folder placeholder if any
   files.push(`${cleanPath}/.emptyFolderPlaceholder`)
 
   if (files.length > 0) {
-    const { error } = await supabase.storage.from(BUCKET_NAME).remove(files)
+    const { error } = await supabase.storage.from(targetBucket).remove(files)
     if (error) throw new Error(`Error al eliminar contenido: ${error.message}`)
   }
 
@@ -255,15 +312,17 @@ export async function deleteFolder(folderPath: string) {
 }
 
 /**
- * Upload a file with custom name into a specific folder.
+ * Upload a file with custom name into a specific folder and bucket.
  */
 export async function uploadStorageFile(
   folderPath: string,
   customFileName: string,
-  formData: FormData
+  formData: FormData,
+  bucketName = DEFAULT_BUCKET
 ): Promise<{ url: string; path: string; name: string }> {
-  await ensureBucket()
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
 
   const file = formData.get("file") as File
   if (!file) {
@@ -291,7 +350,7 @@ export async function uploadStorageFile(
   const arrayBuffer = await file.arrayBuffer()
   const buffer = new Uint8Array(arrayBuffer)
 
-  const { error } = await supabase.storage.from(BUCKET_NAME).upload(finalFilePath, buffer, {
+  const { error } = await supabase.storage.from(targetBucket).upload(finalFilePath, buffer, {
     contentType: file.type || "image/jpeg",
     upsert: true,
   })
@@ -300,7 +359,7 @@ export async function uploadStorageFile(
     throw new Error(`Error al subir el archivo: ${error.message}`)
   }
 
-  const { data: publicUrlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(finalFilePath)
+  const { data: publicUrlData } = supabase.storage.from(targetBucket).getPublicUrl(finalFilePath)
 
   revalidatePath("/admin/multimedia")
   return {
@@ -311,14 +370,56 @@ export async function uploadStorageFile(
 }
 
 /**
- * Delete a single file.
+ * Replace an existing file in storage by overwriting its content (upsert: true).
+ * This preserves the exact file path and public URL.
  */
-export async function deleteStorageFile(filePath: string) {
-  await ensureBucket()
+export async function replaceStorageFile(
+  filePath: string,
+  formData: FormData,
+  bucketName = DEFAULT_BUCKET
+): Promise<{ url: string; path: string; name: string }> {
+  await ensureBucket(bucketName)
   const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
+
+  const file = formData.get("file") as File
+  if (!file) {
+    throw new Error("No se ha seleccionado ningún archivo de reemplazo.")
+  }
 
   const cleanPath = filePath.replace(/^\/+|\/+$/g, "")
-  const { error } = await supabase.storage.from(BUCKET_NAME).remove([cleanPath])
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = new Uint8Array(arrayBuffer)
+
+  const { error } = await supabase.storage.from(targetBucket).upload(cleanPath, buffer, {
+    contentType: file.type || "image/jpeg",
+    upsert: true,
+  })
+
+  if (error) {
+    throw new Error(`Error al reemplazar el archivo: ${error.message}`)
+  }
+
+  const { data: publicUrlData } = supabase.storage.from(targetBucket).getPublicUrl(cleanPath)
+
+  revalidatePath("/admin/multimedia")
+  return {
+    url: publicUrlData.publicUrl,
+    path: cleanPath,
+    name: cleanPath.split("/").pop() || cleanPath,
+  }
+}
+
+/**
+ * Delete a single file from storage.
+ */
+export async function deleteStorageFile(filePath: string, bucketName = DEFAULT_BUCKET) {
+  await ensureBucket(bucketName)
+  const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
+
+  const cleanPath = filePath.replace(/^\/+|\/+$/g, "")
+  const { error } = await supabase.storage.from(targetBucket).remove([cleanPath])
 
   if (error) {
     throw new Error(`Error al eliminar archivo: ${error.message}`)
@@ -327,3 +428,4 @@ export async function deleteStorageFile(filePath: string) {
   revalidatePath("/admin/multimedia")
   return { success: true }
 }
+

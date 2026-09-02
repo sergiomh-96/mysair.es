@@ -47,10 +47,10 @@ export function MediaPickerModal({
           <span>{triggerLabel}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-5 overflow-hidden">
-        <DialogHeader className="pb-2 border-b border-slate-100">
-          <DialogTitle className="flex items-center gap-2 text-slate-900 text-base">
-            <ImageIcon className="h-4 w-4 text-blue-600" />
+      <DialogContent className="w-[96vw] max-w-[1400px] sm:max-w-[1400px] h-[92vh] max-h-[92vh] flex flex-col p-5 sm:p-6 overflow-hidden">
+        <DialogHeader className="pb-3 border-b border-slate-100 shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-slate-900 text-base sm:text-lg font-bold">
+            <ImageIcon className="h-5 w-5 text-blue-600" />
             <span>Seleccionar o Subir Imagen desde Storage</span>
           </DialogTitle>
         </DialogHeader>
