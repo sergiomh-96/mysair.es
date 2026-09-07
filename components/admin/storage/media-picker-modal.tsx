@@ -55,7 +55,7 @@ export function MediaPickerModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto pt-3 pr-1">
+        <div className="flex-1 overflow-hidden pt-3 flex flex-col min-h-0">
           <StorageManager
             pickerMode={true}
             initialPath={initialPath}

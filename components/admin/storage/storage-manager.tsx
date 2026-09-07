@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition, useRef } from "react"
+import { useState, useEffect, useTransition, useRef, useMemo } from "react"
 import {
   StorageFileItem,
   StorageBucketItem,
@@ -10,6 +10,7 @@ import {
   renameFolder,
   deleteFolder,
   uploadStorageFile,
+  bulkUploadStorageFiles,
   replaceStorageFile,
   deleteStorageFile,
 } from "@/lib/actions/admin-storage"
@@ -26,9 +27,11 @@ import {
 } from "@/components/ui/dialog"
 import {
   Folder,
+  FolderOpen,
   FolderPlus,
   Upload,
   ChevronRight,
+  ChevronDown,
   Home,
   Trash2,
   Edit2,
@@ -43,8 +46,189 @@ import {
   CheckCircle2,
   Database,
   Layers,
+  FolderTree,
 } from "lucide-react"
 import { toast } from "sonner"
+
+interface TreeNode {
+  name: string
+  path: string
+  fullPath: string
+  children: TreeNode[]
+}
+
+function buildFolderTree(folderPaths: string[]): TreeNode {
+  const root: TreeNode = {
+    name: "Raíz",
+    path: "",
+    fullPath: "",
+    children: [],
+  }
+
+  const sortedPaths = Array.from(new Set(folderPaths.filter(Boolean))).sort()
+
+  for (const p of sortedPaths) {
+    const parts = p.split("/").filter(Boolean)
+    let current = root
+    let accumulatedPath = ""
+
+    for (const part of parts) {
+      accumulatedPath = accumulatedPath ? `${accumulatedPath}/${part}` : part
+      let child = current.children.find((c) => c.name === part)
+      if (!child) {
+        child = {
+          name: part,
+          path: part,
+          fullPath: accumulatedPath,
+          children: [],
+        }
+        current.children.push(child)
+      }
+      current = child
+    }
+  }
+
+  return root
+}
+
+function FolderTreeNodeItem({
+  node,
+  currentPath,
+  expandedFolders,
+  toggleExpand,
+  onSelectFolder,
+  onCreateSubfolder,
+  onRenameFolder,
+  onDeleteFolder,
+  level = 0,
+}: {
+  node: TreeNode
+  currentPath: string
+  expandedFolders: Set<string>
+  toggleExpand: (path: string) => void
+  onSelectFolder: (path: string) => void
+  onCreateSubfolder: (path: string) => void
+  onRenameFolder: (path: string, name: string) => void
+  onDeleteFolder: (path: string) => void
+  level?: number
+}) {
+  const isSelected = currentPath === node.fullPath
+  const hasChildren = node.children.length > 0
+  const isExpanded = expandedFolders.has(node.fullPath)
+
+  return (
+    <div className="select-none">
+      <div
+        className={`group flex items-center justify-between gap-1 py-1.5 px-2 rounded-lg text-xs cursor-pointer transition-all ${
+          isSelected
+            ? "bg-blue-600 text-white font-semibold shadow-2xs"
+            : "text-slate-700 hover:bg-slate-200/70"
+        }`}
+        style={{ paddingLeft: `${Math.max(8, level * 14 + 8)}px` }}
+        onClick={() => onSelectFolder(node.fullPath)}
+      >
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleExpand(node.fullPath)
+              }}
+              className={`p-0.5 rounded transition-colors ${
+                isSelected
+                  ? "text-blue-200 hover:text-white hover:bg-blue-700"
+                  : "text-slate-400 hover:text-slate-700 hover:bg-slate-300/40"
+              }`}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronRight className="h-3.5 w-3.5" />
+              )}
+            </button>
+          ) : (
+            <span className="w-3.5" />
+          )}
+
+          {isSelected ? (
+            <FolderOpen className="h-3.5 w-3.5 text-blue-100 shrink-0 fill-blue-200/30" />
+          ) : isExpanded ? (
+            <FolderOpen className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+          ) : (
+            <Folder className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+          )}
+
+          <span className="truncate font-medium" title={node.name}>
+            {node.name}
+          </span>
+        </div>
+
+        {/* Action icons on hover */}
+        <div
+          className={`opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 shrink-0 ${
+            isSelected ? "text-blue-100" : "text-slate-400"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => onCreateSubfolder(node.fullPath)}
+            className={`p-1 rounded ${
+              isSelected ? "hover:text-white hover:bg-blue-700" : "hover:text-blue-600 hover:bg-blue-50"
+            }`}
+            title="Nueva subcarpeta"
+          >
+            <FolderPlus className="h-3 w-3" />
+          </button>
+          {node.fullPath !== "" && (
+            <>
+              <button
+                type="button"
+                onClick={() => onRenameFolder(node.fullPath, node.name)}
+                className={`p-1 rounded ${
+                  isSelected ? "hover:text-white hover:bg-blue-700" : "hover:text-blue-600 hover:bg-blue-50"
+                }`}
+                title="Renombrar"
+              >
+                <Edit2 className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteFolder(node.fullPath)}
+                className={`p-1 rounded ${
+                  isSelected ? "hover:text-white hover:bg-red-600" : "hover:text-red-600 hover:bg-red-50"
+                }`}
+                title="Eliminar"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {hasChildren && isExpanded && (
+        <div className="space-y-0.5 mt-0.5">
+          {node.children.map((child) => (
+            <FolderTreeNodeItem
+              key={child.fullPath}
+              node={child}
+              currentPath={currentPath}
+              expandedFolders={expandedFolders}
+              toggleExpand={toggleExpand}
+              onSelectFolder={onSelectFolder}
+              onCreateSubfolder={onCreateSubfolder}
+              onRenameFolder={onRenameFolder}
+              onDeleteFolder={onDeleteFolder}
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface StorageManagerProps {
   onSelectFile?: (url: string) => void
@@ -69,8 +253,12 @@ export function StorageManager({
   const [copiedPath, setCopiedPath] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
+  // Tree expansion state
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set([""]))
+
   // Dialog states
   const [createFolderOpen, setCreateFolderOpen] = useState(false)
+  const [createFolderParent, setCreateFolderParent] = useState(currentPath)
   const [newFolderName, setNewFolderName] = useState("")
 
   const [renameFolderOpen, setRenameFolderOpen] = useState(false)
@@ -96,9 +284,114 @@ export function StorageManager({
   const [uploadTargetFolder, setUploadTargetFolder] = useState(currentPath)
   const [customFileName, setCustomFileName] = useState("")
 
+  // Drag & drop upload state
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragCounter, setDragCounter] = useState(0)
+  const [isUploadingDrop, setIsUploadingDrop] = useState(false)
+  const dropZoneInputRef = useRef<HTMLInputElement>(null)
+
   const [isPending, startTransition] = useTransition()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
+
+  // Drag & Drop Handlers for central area
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragCounter((prev) => prev + 1)
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true)
+    }
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragCounter((prev) => {
+      const next = prev - 1
+      if (next <= 0) {
+        setIsDragging(false)
+        return 0
+      }
+      return next
+    })
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = "copy"
+  }
+
+  async function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    setDragCounter(0)
+
+    const droppedFiles = Array.from(e.dataTransfer.files || []).filter((f) => f.size > 0)
+    if (droppedFiles.length === 0) return
+
+    await processDroppedFiles(droppedFiles)
+  }
+
+  async function processDroppedFiles(files: File[]) {
+    if (files.length === 0) return
+    setIsUploadingDrop(true)
+    const targetPath = currentPath
+    const folderDisplay = targetPath ? `/${targetPath}` : "la raíz"
+    const toastId = toast.loading(`Subiendo ${files.length} archivo(s) a ${folderDisplay}...`)
+
+    try {
+      const formData = new FormData()
+      for (const file of files) {
+        formData.append("files", file)
+      }
+
+      const res = await bulkUploadStorageFiles(targetPath, formData, currentBucket)
+      toast.success(`¡${res.count} archivo(s) subido(s) con éxito!`, { id: toastId })
+      await loadData(currentPath, currentBucket)
+
+      if (pickerMode && onSelectFile && res.uploaded.length > 0) {
+        onSelectFile(res.uploaded[0].url)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al subir los archivos"
+      toast.error(msg, { id: toastId })
+    } finally {
+      setIsUploadingDrop(false)
+    }
+  }
+
+  // Auto-expand ancestors when currentPath changes
+  useEffect(() => {
+    if (currentPath) {
+      const parts = currentPath.split("/").filter(Boolean)
+      const toExpand: string[] = [""]
+      let acc = ""
+      for (const part of parts) {
+        acc = acc ? `${acc}/${part}` : part
+        toExpand.push(acc)
+      }
+      setExpandedFolders((prev) => {
+        const next = new Set(prev)
+        toExpand.forEach((p) => next.add(p))
+        return next
+      })
+    }
+  }, [currentPath])
+
+  function toggleExpand(path: string) {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev)
+      if (next.has(path)) {
+        next.delete(path)
+      } else {
+        next.add(path)
+      }
+      return next
+    })
+  }
 
   // Load items when currentPath or currentBucket changes
   async function loadData(path = currentPath, bucket = currentBucket) {
@@ -123,6 +416,9 @@ export function StorageManager({
     setUploadTargetFolder(currentPath)
   }, [currentPath, currentBucket])
 
+  // Build tree from allFolders
+  const folderTree = useMemo(() => buildFolderTree(allFolders), [allFolders])
+
   // Breadcrumbs helper
   const pathSegments = currentPath ? currentPath.split("/").filter(Boolean) : []
 
@@ -136,13 +432,19 @@ export function StorageManager({
   }
 
   // Folder Actions
+  function openCreateFolder(parent = currentPath) {
+    setCreateFolderParent(parent)
+    setNewFolderName("")
+    setCreateFolderOpen(true)
+  }
+
   function handleCreateFolderSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!newFolderName.trim()) return
 
     startTransition(async () => {
       try {
-        await createFolder(currentPath, newFolderName, currentBucket)
+        await createFolder(createFolderParent, newFolderName, currentBucket)
         toast.success(`Carpeta "${newFolderName}" creada correctamente`)
         setCreateFolderOpen(false)
         setNewFolderName("")
@@ -154,21 +456,24 @@ export function StorageManager({
     })
   }
 
+  function openRenameFolder(path: string, name: string) {
+    setFolderToRename(path)
+    setRenamedFolderName(name)
+    setRenameFolderOpen(true)
+  }
+
   function handleRenameFolderSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!renamedFolderName.trim()) return
+    if (!renamedFolderName.trim() || !folderToRename) return
 
     startTransition(async () => {
       try {
         await renameFolder(folderToRename, renamedFolderName, currentBucket)
         toast.success(`Carpeta renombrada a "${renamedFolderName}"`)
         setRenameFolderOpen(false)
-        if (currentPath === folderToRename || currentPath.startsWith(folderToRename + "/")) {
-          const parent = folderToRename.split("/").slice(0, -1).join("/")
-          setCurrentPath(parent ? `${parent}/${renamedFolderName}` : renamedFolderName)
-        } else {
-          await loadData(currentPath, currentBucket)
-        }
+        setFolderToRename("")
+        setRenamedFolderName("")
+        await loadData(currentPath, currentBucket)
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al renombrar la carpeta"
         toast.error(msg)
@@ -176,15 +481,21 @@ export function StorageManager({
     })
   }
 
+  function openDeleteFolder(path: string) {
+    setFolderToDelete(path)
+    setDeleteFolderOpen(true)
+  }
+
   function handleDeleteFolderSubmit() {
+    if (!folderToDelete) return
     startTransition(async () => {
       try {
         await deleteFolder(folderToDelete, currentBucket)
-        toast.success(`Carpeta y contenidos eliminados`)
+        toast.success(`Carpeta eliminada`)
         setDeleteFolderOpen(false)
-        if (currentPath === folderToDelete || currentPath.startsWith(folderToDelete + "/")) {
-          const parent = folderToDelete.split("/").slice(0, -1).join("/")
-          setCurrentPath(parent)
+        setFolderToDelete("")
+        if (currentPath === folderToDelete || currentPath.startsWith(`${folderToDelete}/`)) {
+          setCurrentPath("")
         } else {
           await loadData(currentPath, currentBucket)
         }
@@ -195,7 +506,7 @@ export function StorageManager({
     })
   }
 
-  // File Actions
+  // File Delete Actions
   function handleDeleteFileSubmit() {
     if (!fileToDelete) return
     startTransition(async () => {
@@ -337,14 +648,13 @@ export function StorageManager({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Top Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
-        {/* Left Side: Bucket Switcher & Breadcrumbs */}
-        <div className="flex items-center gap-2 flex-wrap min-w-0">
-          {/* Bucket Switcher */}
+    <div className="flex flex-col gap-3 h-full">
+      {/* Top Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs shrink-0">
+        {/* Bucket Switcher & Search */}
+        <div className="flex items-center gap-2.5 flex-wrap flex-1 min-w-0">
           {buckets.length > 1 && (
-            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 shrink-0">
+            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 shrink-0">
               <Database className="h-3.5 w-3.5 text-blue-600 shrink-0" />
               <select
                 value={currentBucket}
@@ -363,47 +673,25 @@ export function StorageManager({
             </div>
           )}
 
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-1 flex-wrap">
-            <button
-              type="button"
-              onClick={() => navigateToSegment(-1)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors shrink-0 ${
-                currentPath === ""
-                  ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent"
-              }`}
-            >
-              <Home className="h-3.5 w-3.5" />
-              <span>Raíz</span>
-            </button>
-
-            {pathSegments.map((segment, idx) => (
-              <div key={idx} className="flex items-center gap-1 shrink-0">
-                <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                <button
-                  type="button"
-                  onClick={() => navigateToSegment(idx)}
-                  className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                    idx === pathSegments.length - 1
-                      ? "bg-blue-50 text-blue-700 font-bold border border-blue-200"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent"
-                  }`}
-                >
-                  {segment}
-                </button>
-              </div>
-            ))}
+          {/* Search Box */}
+          <div className="relative w-full sm:w-64 max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Input
+              placeholder="Buscar archivo en carpeta..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 text-xs bg-slate-50/50 border-slate-200"
+            />
           </div>
         </div>
 
-        {/* Right Side: Action Buttons */}
+        {/* Global Action Buttons */}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setCreateFolderOpen(true)}
+            onClick={() => openCreateFolder(currentPath)}
             className="gap-1.5 text-xs font-semibold bg-white text-slate-700 border-slate-300 hover:bg-slate-50 h-8"
           >
             <FolderPlus className="h-3.5 w-3.5 text-blue-600" />
@@ -430,150 +718,225 @@ export function StorageManager({
             onClick={() => loadData(currentPath, currentBucket)}
             disabled={loading}
             className="h-8 w-8 p-0 text-slate-500 hover:text-slate-800"
-            title="Recargar"
+            title="Recargar Storage"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>
 
-      {/* Search Bar & Stats */}
-      <div className="flex items-center justify-between gap-3 px-1">
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-          <Input
-            placeholder="Buscar en esta carpeta..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-8 text-xs bg-white border-slate-200"
+      {/* Main Split Layout: Left Vertical Tree & Center/Right Files Area */}
+      <div className="flex-1 flex flex-col md:flex-row rounded-xl border border-slate-200 bg-white overflow-hidden shadow-2xs min-h-[520px]">
+        {/* LEFT VERTICAL SIDEBAR: FOLDER TREE */}
+        <div className="w-full md:w-64 lg:w-72 border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50/70 p-3 flex flex-col gap-2 shrink-0 overflow-y-auto max-h-[220px] md:max-h-none">
+          <div className="flex items-center justify-between px-1 pb-1.5 border-b border-slate-200">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <FolderTree className="h-3.5 w-3.5 text-blue-600" />
+              Estructura de Carpetas
+            </span>
+            <button
+              type="button"
+              onClick={() => openCreateFolder("")}
+              className="p-1 text-slate-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
+              title="Crear carpeta en la raíz"
+            >
+              <FolderPlus className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-0.5 overflow-y-auto flex-1 pr-0.5">
+            <FolderTreeNodeItem
+              node={folderTree}
+              currentPath={currentPath}
+              expandedFolders={expandedFolders}
+              toggleExpand={toggleExpand}
+              onSelectFolder={(path) => setCurrentPath(path)}
+              onCreateSubfolder={(path) => openCreateFolder(path)}
+              onRenameFolder={(path, name) => openRenameFolder(path, name)}
+              onDeleteFolder={(path) => openDeleteFolder(path)}
+              level={0}
+            />
+          </div>
+        </div>
+
+        {/* CENTER & RIGHT CONTENT AREA: FILES VIEW (DRAG & DROP ZONE) */}
+        <div
+          className="relative flex-1 flex flex-col min-w-0 bg-white overflow-y-auto"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {/* DRAG & DROP FULL OVERLAY */}
+          {isDragging && (
+            <div className="absolute inset-0 z-50 bg-blue-600/10 backdrop-blur-[2px] border-2 border-dashed border-blue-600 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-150 pointer-events-none">
+              <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg mb-3 animate-bounce">
+                <Upload className="h-8 w-8" />
+              </div>
+              <h3 className="text-base font-bold text-blue-950 mb-1">
+                Suelta aquí los archivos para subirlos
+              </h3>
+              <p className="text-xs text-blue-700 font-medium max-w-sm">
+                Se subirán directamente a la carpeta:{" "}
+                <span className="font-bold underline font-mono">/{currentPath || "raíz"}</span>
+              </p>
+              <span className="mt-2.5 text-[11px] bg-white text-blue-800 px-3 py-1 rounded-full font-semibold border border-blue-200 shadow-2xs">
+                Imágenes (PNG, JPG, WebP, SVG), PDFs, Planos y Modelos 3D
+              </span>
+            </div>
+          )}
+
+          {/* Hidden multi-file input for clicking dropzone */}
+          <input
+            ref={dropZoneInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || [])
+              if (files.length > 0) {
+                processDroppedFiles(files)
+              }
+              e.target.value = ""
+            }}
+            accept="image/*,application/pdf,video/*,model/*,.dwg,.dxf,.rvt,.rfa,.stl,.step,.stp"
           />
-        </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-          <span>
-            {folderItems.length} carpetas · {fileItems.length} archivos
-          </span>
-        </div>
-      </div>
+          {/* Breadcrumbs & Active Folder Header */}
+          <div className="p-3.5 border-b border-slate-100 bg-slate-50/30 flex flex-wrap items-center justify-between gap-2 shrink-0">
+            {/* Breadcrumbs */}
+            <div className="flex items-center gap-1 flex-wrap text-xs">
+              <button
+                type="button"
+                onClick={() => navigateToSegment(-1)}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded font-semibold transition-colors ${
+                  currentPath === ""
+                    ? "text-blue-700 bg-blue-100/70 font-bold"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <Home className="h-3.5 w-3.5" />
+                <span>Raíz</span>
+              </button>
 
-      {/* Content View */}
-      {loading ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-2xs">
-          <RefreshCw className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-medium text-slate-600">Cargando contenidos del Storage...</p>
-        </div>
-      ) : filteredItems.length === 0 ? (
-        <div className="bg-white rounded-xl border border-dashed border-slate-200 p-12 text-center shadow-2xs">
-          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-3 text-slate-400">
-            <Layers className="h-6 w-6" />
-          </div>
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">
-            {searchQuery ? "No se encontraron resultados" : "Carpeta vacía"}
-          </h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">
-            {searchQuery
-              ? `No hay elementos que coincidan con "${searchQuery}"`
-              : "No hay archivos ni subcarpetas aquí. Puedes crear una carpeta o subir una imagen."}
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setCreateFolderOpen(true)}
-              className="text-xs gap-1.5"
-            >
-              <FolderPlus className="h-3.5 w-3.5 text-blue-600" />
-              Crear Carpeta
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => {
-                setUploadTargetFolder(currentPath)
-                setUploadOpen(true)
-              }}
-              className="text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              Subir Archivo
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-5">
-          {/* FOLDERS IN LIST FORMAT */}
-          {folderItems.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1.5">
-                <Folder className="h-3.5 w-3.5 text-blue-600" />
-                <span>Carpetas ({folderItems.length})</span>
-              </h4>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {folderItems.map((item) => (
-                  <div
-                    key={item.path}
-                    onClick={() => setCurrentPath(item.path)}
-                    className="group flex items-center justify-between gap-2.5 bg-white rounded-xl border border-slate-200 px-3.5 py-2.5 shadow-2xs hover:shadow-xs hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+              {pathSegments.map((segment, idx) => (
+                <div key={idx} className="flex items-center gap-1">
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                  <button
+                    type="button"
+                    onClick={() => navigateToSegment(idx)}
+                    className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                      idx === pathSegments.length - 1
+                        ? "text-blue-700 bg-blue-100/70 font-bold"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <Folder className="h-4 w-4 fill-blue-100" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-slate-800 truncate" title={item.name}>
-                          {item.name}
-                        </p>
-                        <p className="text-[10px] text-slate-400">Carpeta</p>
-                      </div>
-                    </div>
+                    {segment}
+                  </button>
+                </div>
+              ))}
+            </div>
 
-                    <div
-                      className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFolderToRename(item.path)
-                          setRenamedFolderName(item.name)
-                          setRenameFolderOpen(true)
-                        }}
-                        className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                        title="Renombrar carpeta"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFolderToDelete(item.path)
-                          setDeleteFolderOpen(true)
-                        }}
-                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
-                        title="Eliminar carpeta"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
+            {/* Folder stats & quick actions */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <span>
+                {fileItems.length} {fileItems.length === 1 ? "archivo" : "archivos"}
+                {folderItems.length > 0 && ` · ${folderItems.length} subcarpetas`}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => dropZoneInputRef.current?.click()}
+                disabled={isUploadingDrop}
+                className="h-7 px-2.5 text-xs text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100 font-semibold gap-1.5"
+              >
+                <Upload className="h-3 w-3" />
+                {isUploadingDrop ? "Subiendo..." : "Arrastrar o Subir"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Subfolders Quick Chips (if current folder has subfolders) */}
+          {folderItems.length > 0 && (
+            <div className="px-4 py-2 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto shrink-0">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                <Folder className="h-3 w-3 text-slate-400" /> Subcarpetas:
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {folderItems.map((f) => (
+                  <button
+                    key={f.path}
+                    type="button"
+                    onClick={() => setCurrentPath(f.path)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-xs font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50/50 hover:text-blue-700 transition-all shadow-2xs"
+                  >
+                    <Folder className="h-3 w-3 text-blue-500 fill-blue-50" />
+                    <span>{f.name}</span>
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* FILES IN GRID FORMAT */}
-          {fileItems.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-blue-600" />
-                <span>Archivos ({fileItems.length})</span>
-              </h4>
+          {/* Main Files Display */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            {/* Quick Drag & Drop Bar when files exist */}
+            {fileItems.length > 0 && (
+              <div
+                onClick={() => dropZoneInputRef.current?.click()}
+                className="mb-4 rounded-xl border border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/40 hover:bg-blue-50/30 px-4 py-2.5 text-center cursor-pointer transition-all flex items-center justify-between gap-3 group"
+              >
+                <div className="flex items-center gap-2.5 text-slate-600 text-xs font-medium min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    <Upload className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="truncate">
+                    <span className="font-semibold text-slate-800">Arrastra archivos aquí</span> o haz clic para subir a{" "}
+                    <span className="font-mono text-blue-600 font-semibold">/{currentPath || "raíz"}</span>
+                  </span>
+                </div>
+                <span className="text-[10px] bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-500 font-medium shrink-0 group-hover:border-blue-200 group-hover:text-blue-600">
+                  Múltiples archivos permitidos
+                </span>
+              </div>
+            )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {loading ? (
+              <div className="py-20 text-center">
+                <RefreshCw className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
+                <p className="text-sm font-medium text-slate-600">Cargando archivos...</p>
+              </div>
+            ) : fileItems.length === 0 ? (
+              <div
+                onClick={() => dropZoneInputRef.current?.click()}
+                className="rounded-xl border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50/60 hover:bg-blue-50/40 p-12 text-center my-6 cursor-pointer transition-all flex flex-col items-center justify-center"
+              >
+                <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 shadow-2xs">
+                  <Upload className="h-7 w-7" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 mb-1">
+                  Arrastra y suelta tus archivos aquí
+                </h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
+                  O haz clic para seleccionar archivos desde tu equipo para subirlos a{" "}
+                  <span className="font-mono font-semibold text-blue-600">/{currentPath || "raíz"}</span>
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-2xs pointer-events-none"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Seleccionar archivos
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 {fileItems.map((item) => {
-                  const isImage = item.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(item.name)
+                  const isImage =
+                    item.mimeType?.startsWith("image/") ||
+                    /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(item.name)
                   const isPdf = item.mimeType === "application/pdf" || item.name.endsWith(".pdf")
 
                   return (
@@ -612,7 +975,7 @@ export function StorageManager({
                         )}
 
                         {/* Hover Overlay Controls */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
+                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
                           {pickerMode && onSelectFile && item.url && (
                             <Button
                               type="button"
@@ -732,10 +1095,10 @@ export function StorageManager({
                   )
                 })}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* REPLACE FILE DIALOG */}
       <Dialog open={replaceFileOpen} onOpenChange={setReplaceFileOpen}>
@@ -757,13 +1120,17 @@ export function StorageManager({
               <div className="text-center space-y-1.5">
                 <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actual</span>
                 <div className="aspect-4/3 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-1">
-                  {fileToReplace?.url && (fileToReplace.mimeType?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(fileToReplace.name)) ? (
+                  {fileToReplace?.url &&
+                  (fileToReplace.mimeType?.startsWith("image/") ||
+                    /\.(jpg|jpeg|png|webp|gif|svg|avif)$/i.test(fileToReplace.name)) ? (
                     <img src={fileToReplace.url} alt="Actual" className="w-full h-full object-contain" />
                   ) : (
                     <FileText className="h-8 w-8 text-slate-400" />
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 truncate" title={fileToReplace?.name}>{fileToReplace?.name}</p>
+                <p className="text-[10px] text-slate-400 truncate" title={fileToReplace?.name}>
+                  {fileToReplace?.name}
+                </p>
               </div>
 
               {/* New Version */}
@@ -840,7 +1207,7 @@ export function StorageManager({
               Crear Nueva Carpeta
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Ubicación: <span className="font-semibold text-slate-800">/{currentPath || "raíz"}</span>
+              Ubicación: <span className="font-semibold text-slate-800">/{createFolderParent || "raíz"}</span>
             </DialogDescription>
           </DialogHeader>
 

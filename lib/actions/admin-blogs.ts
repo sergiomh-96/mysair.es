@@ -26,16 +26,24 @@ export async function upsertBlog(formData: FormData) {
   const publishedAtRaw = formData.get("published_at") as string
   const publishedAt = publishedAtRaw ? new Date(publishedAtRaw).toISOString() : new Date().toISOString()
 
+  const title = formData.get("title") ? String(formData.get("title")).trim() : ""
+  const slug = formData.get("slug") ? String(formData.get("slug")).trim() : ""
+  const content = formData.get("content") ? String(formData.get("content")).trim() : ""
+
+  if (!title) throw new Error("El título del artículo es obligatorio.")
+  if (!slug) throw new Error("El slug del artículo es obligatorio.")
+  if (!content) throw new Error("El contenido del artículo es obligatorio.")
+
   const payload = {
-    title: formData.get("title"),
-    slug: formData.get("slug"),
-    excerpt: formData.get("excerpt") || null,
-    content: formData.get("content"),
+    title,
+    slug,
+    excerpt: formData.get("excerpt") ? String(formData.get("excerpt")).trim() : null,
+    content,
     sections,
-    summary: formData.get("summary") || null,
-    image_url: formData.get("image_url") || null,
-    author: formData.get("author") || "MYSAir",
-    category: formData.get("category") || null,
+    summary: formData.get("summary") ? String(formData.get("summary")).trim() : null,
+    image_url: formData.get("image_url") ? String(formData.get("image_url")).trim() : null,
+    author: formData.get("author") ? String(formData.get("author")).trim() : "MYSAir",
+    category: formData.get("category") ? String(formData.get("category")).trim() : null,
     tags: formData.get("tags") ? (formData.get("tags") as string).split(",").map(t => t.trim()).filter(Boolean) : [],
     published: formData.get("published") === "true",
     featured: formData.get("featured") === "true",
@@ -43,13 +51,13 @@ export async function upsertBlog(formData: FormData) {
     route_type: formData.get("route_type") || "blogs",
     published_at: publishedAt,
     // SEO fields
-    meta_title: formData.get("meta_title") || null,
-    meta_description: formData.get("meta_description") || null,
-    meta_keywords: formData.get("meta_keywords") || null,
-    og_title: formData.get("og_title") || null,
-    og_description: formData.get("og_description") || null,
-    og_image: formData.get("og_image") || null,
-    canonical_url: formData.get("canonical_url") || null,
+    meta_title: formData.get("meta_title") ? String(formData.get("meta_title")).trim() : null,
+    meta_description: formData.get("meta_description") ? String(formData.get("meta_description")).trim() : null,
+    meta_keywords: formData.get("meta_keywords") ? String(formData.get("meta_keywords")).trim() : null,
+    og_title: formData.get("og_title") ? String(formData.get("og_title")).trim() : null,
+    og_description: formData.get("og_description") ? String(formData.get("og_description")).trim() : null,
+    og_image: formData.get("og_image") ? String(formData.get("og_image")).trim() : null,
+    canonical_url: formData.get("canonical_url") ? String(formData.get("canonical_url")).trim() : null,
     updated_at: new Date().toISOString(),
   }
 

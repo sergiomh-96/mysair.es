@@ -23,6 +23,7 @@ interface DocumentLink {
 interface Product {
   id: number
   name: string
+  slug?: string
   description: string
   category: string
   subcategory: string

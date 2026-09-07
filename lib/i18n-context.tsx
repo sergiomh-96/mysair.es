@@ -11,6 +11,7 @@ type Language = "es" | "en" | "fr" | "it"
 
 interface I18nContextType {
   language: Language
+  locale: Language
   setLanguage: (lang: Language) => void
   t: (key: string) => string
 }
@@ -54,7 +55,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
+    <I18nContext.Provider value={{ language, locale: language, setLanguage, t }}>
       {children}
     </I18nContext.Provider>
   )

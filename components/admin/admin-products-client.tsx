@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Pencil, Trash2, Video, AlertTriangle, Copy } from "lucide-react"
+import { Plus, Pencil, Trash2, Video, AlertTriangle, Copy, Search, X } from "lucide-react"
 import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo, bulkImportProducts, duplicateProduct } from "@/lib/actions/admin-products"
 import { useRouter } from "next/navigation"
 import { DocumentListField } from "./document-list-field"
@@ -20,6 +20,43 @@ import { SpecListField } from "./spec-list-field"
 import { TechnicalSpecsField } from "./technical-specs-field"
 import { BulkExcelImport } from "./bulk-excel-import"
 import { toast } from "sonner"
+
+const STANDARD_CATEGORIES: { id: string; label: string }[] = [
+  { id: "air_diffusion", label: "Difusión de Aire (air_diffusion)" },
+  { id: "smart_systems", label: "Sistemas Inteligentes (smart_systems)" },
+  { id: "vmc", label: "Ventilación y VMC (vmc)" },
+]
+
+const STANDARD_SUBCATEGORIES: Record<string, { id: string; label: string }[]> = {
+  air_diffusion: [
+    { id: "grilles", label: "Rejillas (grilles)" },
+    { id: "diffusers", label: "Difusores (diffusers)" },
+    { id: "plenums", label: "Plenums (plenums)" },
+    { id: "linear_diffusers", label: "Difusores Lineales (linear_diffusers)" },
+    { id: "circular_diffusers", label: "Difusores Circulares (circular_diffusers)" },
+    { id: "nozzles", label: "Toberas (nozzles)" },
+    { id: "dampers", label: "Compuertas de Regulación (dampers)" },
+    { id: "accessories", label: "Accesorios (accessories)" },
+  ],
+  smart_systems: [
+    { id: "control_units", label: "Centrales de Control (control_units)" },
+    { id: "thermostats", label: "Termostatos y Sondas (thermostats)" },
+    { id: "gateways", label: "Pasarelas de Comunicación (gateways)" },
+    { id: "actuators", label: "Compuertas Motorizadas y Motores (actuators)" },
+    { id: "communication_modules", label: "Módulos de Expansión / Web (communication_modules)" },
+    { id: "accessories", label: "Accesorios (accessories)" },
+  ],
+  vmc: [
+    { id: "heat_recovery", label: "Recuperadores de Calor (heat_recovery)" },
+    { id: "recovery", label: "Recuperación (recovery)" },
+    { id: "residential", label: "VMC Residencial (residential)" },
+    { id: "commercial", label: "VMC Comercial / Industrial (commercial)" },
+    { id: "filtration", label: "Filtración (filtration)" },
+    { id: "decentralized", label: "VMC Descentralizada (decentralized)" },
+    { id: "hybrid", label: "Sistemas Híbridos (hybrid)" },
+    { id: "accessories", label: "Accesorios (accessories)" },
+  ],
+}
 
 type Product = {
   id: number
@@ -61,6 +98,7 @@ type ProductVideo = {
 export function AdminProductsClient({ initialProducts }: { initialProducts: Product[] }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const submitIntentRef = useRef<"save" | "saveAndClose">("save")
   const [products, setProducts] = useState(initialProducts)
   const [productDialog, setProductDialog] = useState(false)
   const [videoDialog, setVideoDialog] = useState(false)
@@ -69,15 +107,117 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
   const [editingVideo, setEditingVideo] = useState<{ video: ProductVideo | null; productId: number } | null>(null)
   const [error, setError] = useState("")
 
+  const [categorySelect, setCategorySelect] = useState<string>("air_diffusion")
+  const [customCategory, setCustomCategory] = useState<string>("")
+  const [subcategorySelect, setSubcategorySelect] = useState<string>("__none__")
+  const [customSubcategory, setCustomSubcategory] = useState<string>("")
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
+
+  useEffect(() => {
+    setProducts(initialProducts)
+  }, [initialProducts])
+
+  const availableCategories = useMemo(() => {
+    const map = new Map<string, string>()
+    STANDARD_CATEGORIES.forEach((c) => map.set(c.id, c.label))
+    products.forEach((p) => {
+      if (p.category && !map.has(p.category)) {
+        map.set(p.category, `${p.category} (existente)`)
+      }
+    })
+    return Array.from(map.entries()).map(([id, label]) => ({ id, label }))
+  }, [products])
+
+  const effectiveCategory = categorySelect === "__custom__" ? customCategory.trim() : categorySelect
+
+  const availableSubcategories = useMemo(() => {
+    const map = new Map<string, string>()
+    const standardForCat = STANDARD_SUBCATEGORIES[effectiveCategory] || []
+    standardForCat.forEach((s) => map.set(s.id, s.label))
+
+    products.forEach((p) => {
+      if ((p.category === effectiveCategory || !effectiveCategory) && p.subcategory && !map.has(p.subcategory)) {
+        map.set(p.subcategory, `${p.subcategory} (existente)`)
+      }
+    })
+    return Array.from(map.entries()).map(([id, label]) => ({ id, label }))
+  }, [products, effectiveCategory])
+
+  // Filtered products list based on search and filters
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      // Text search
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim()
+        const nameMatch = p.name?.toLowerCase().includes(q)
+        const slugMatch = p.slug?.toLowerCase().includes(q)
+        const catMatch = p.category?.toLowerCase().includes(q)
+        const subMatch = p.subcategory?.toLowerCase().includes(q)
+        const descMatch = p.description?.toLowerCase().includes(q)
+        if (!nameMatch && !slugMatch && !catMatch && !subMatch && !descMatch) {
+          return false
+        }
+      }
+
+      // Category filter
+      if (categoryFilter !== "all" && p.category !== categoryFilter) {
+        return false
+      }
+
+      // Status filter
+      if (statusFilter === "active" && p.is_active === false) return false
+      if (statusFilter === "inactive" && p.is_active !== false) return false
+      if (statusFilter === "featured" && !p.is_featured) return false
+
+      return true
+    })
+  }, [products, searchQuery, categoryFilter, statusFilter])
+
   function openNewProduct() {
+    submitIntentRef.current = "save"
     setEditingProduct(null)
+    setCategorySelect("air_diffusion")
+    setCustomCategory("")
+    setSubcategorySelect("__none__")
+    setCustomSubcategory("")
     setError("")
     setProductDialog(true)
   }
 
   function openEditProduct(p: Product) {
+    submitIntentRef.current = "save"
     setEditingProduct(p)
     setError("")
+
+    const existingCat = p.category || "air_diffusion"
+    const catMatchesKnown = availableCategories.some((c) => c.id === existingCat)
+    if (catMatchesKnown) {
+      setCategorySelect(existingCat)
+      setCustomCategory("")
+    } else {
+      setCategorySelect("__custom__")
+      setCustomCategory(existingCat)
+    }
+
+    const existingSub = p.subcategory || ""
+    if (!existingSub) {
+      setSubcategorySelect("__none__")
+      setCustomSubcategory("")
+    } else {
+      const subMatchesKnown = availableSubcategories.some((s) => s.id === existingSub)
+      if (subMatchesKnown) {
+        setSubcategorySelect(existingSub)
+        setCustomSubcategory("")
+      } else {
+        setSubcategorySelect("__custom__")
+        setCustomSubcategory(existingSub)
+      }
+    }
+
     setProductDialog(true)
   }
 
@@ -95,11 +235,32 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
     e.preventDefault()
     setError("")
     const fd = new FormData(e.currentTarget)
+    const isEdit = Boolean(editingProduct)
+    const intent = submitIntentRef.current
+
     startTransition(async () => {
       try {
-        await upsertProduct(fd)
-        setProductDialog(false)
-        toast.success(editingProduct ? "Producto actualizado correctamente" : "Producto creado correctamente")
+        const saved = await upsertProduct(fd)
+        if (saved) {
+          setEditingProduct(saved)
+          setProducts((prev) => {
+            const idx = prev.findIndex((p) => p.id === saved.id)
+            if (idx >= 0) {
+              const copy = [...prev]
+              copy[idx] = saved
+              return copy
+            }
+            return [...prev, saved]
+          })
+        }
+
+        // Only close if it was creating a new product or if "Guardar y cerrar" was clicked
+        const shouldClose = !isEdit || intent === "saveAndClose"
+        if (shouldClose) {
+          setProductDialog(false)
+        }
+
+        toast.success(isEdit ? "Producto guardado correctamente" : "Producto creado correctamente")
         router.refresh()
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Error al guardar el producto"
@@ -238,7 +399,10 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Productos</h1>
-          <p className="text-slate-500 text-sm mt-1">{products.length} productos en total</p>
+          <p className="text-slate-500 text-sm mt-1">
+            {products.length} productos en total
+            {filteredProducts.length !== products.length && ` (mostrando ${filteredProducts.length})`}
+          </p>
         </div>
         <div className="flex items-center gap-2.5">
           <BulkExcelImport
@@ -260,6 +424,82 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
         </div>
       </div>
 
+      {/* Search & Filters Toolbar */}
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-4 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs">
+        {/* Search Input */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Buscar por nombre, slug, categoría o descripción..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-8 h-9 text-xs bg-slate-50/50 focus:bg-white border-slate-200"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-2.5 p-0.5 text-slate-400 hover:text-slate-700 rounded-full"
+              title="Limpiar búsqueda"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter Selects */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Category Filter */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="h-9 text-xs bg-slate-50/50 border-slate-200 w-[190px]">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              {availableCategories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-9 text-xs bg-slate-50/50 border-slate-200 w-[145px]">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Descatalogados</SelectItem>
+              <SelectItem value="featured">Destacados</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Filters Button */}
+          {(searchQuery || categoryFilter !== "all" || statusFilter !== "all") && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery("")
+                setCategoryFilter("all")
+                setStatusFilter("all")
+              }}
+              className="h-9 px-2.5 text-xs text-slate-500 hover:text-slate-800"
+            >
+              Limpiar filtros
+            </Button>
+          )}
+
+          <div className="text-xs text-slate-400 pl-1 font-medium shrink-0">
+            {filteredProducts.length} de {products.length}
+          </div>
+        </div>
+      </div>
+
       <Card className="border border-slate-200">
         <Table>
           <TableHeader>
@@ -275,10 +515,37 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-slate-400 py-10">No hay productos</TableCell></TableRow>
+            {filteredProducts.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-slate-400 py-12">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Search className="h-8 w-8 text-slate-300" />
+                    <p className="font-medium text-slate-700 text-sm">No se encontraron productos</p>
+                    <p className="text-xs text-slate-400 max-w-sm">
+                      {searchQuery || categoryFilter !== "all" || statusFilter !== "all"
+                        ? "Prueba a cambiar el término de búsqueda o restablecer los filtros."
+                        : "No hay productos registrados."}
+                    </p>
+                    {(searchQuery || categoryFilter !== "all" || statusFilter !== "all") && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSearchQuery("")
+                          setCategoryFilter("all")
+                          setStatusFilter("all")
+                        }}
+                        className="text-xs mt-1"
+                      >
+                        Limpiar búsqueda y filtros
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
             )}
-            {products.map((p) => (
+            {filteredProducts.map((p) => (
               <TableRow key={p.id} className="hover:bg-slate-50">
                 <TableCell className="text-center font-mono font-semibold text-xs text-slate-600 bg-slate-50/50">
                   <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-white border border-slate-200 shadow-2xs">
@@ -352,11 +619,91 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label>Categoría *</Label>
-                    <Input name="category" defaultValue={editingProduct?.category} required />
+                    <Select
+                      value={categorySelect}
+                      onValueChange={(val) => {
+                        setCategorySelect(val)
+                        if (val !== "__custom__") {
+                          setCustomCategory("")
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="__custom__" className="text-blue-600 font-medium">
+                          + Otra categoría personalizada...
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {categorySelect === "__custom__" && (
+                      <Input
+                        placeholder="Identificador de la categoría (ej: nueva_categoria)..."
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                        className="mt-1.5"
+                        required
+                      />
+                    )}
+                    <input
+                      type="hidden"
+                      name="category"
+                      value={categorySelect === "__custom__" ? customCategory.trim() : categorySelect}
+                      required
+                    />
                   </div>
+
                   <div className="space-y-1.5">
                     <Label>Subcategoría</Label>
-                    <Input name="subcategory" defaultValue={editingProduct?.subcategory ?? ""} />
+                    <Select
+                      value={subcategorySelect}
+                      onValueChange={(val) => {
+                        setSubcategorySelect(val)
+                        if (val !== "__custom__") {
+                          setCustomSubcategory("")
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Seleccionar subcategoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">-- Ninguna subcategoría --</SelectItem>
+                        {availableSubcategories.map((sub) => (
+                          <SelectItem key={sub.id} value={sub.id}>
+                            {sub.label}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="__custom__" className="text-blue-600 font-medium">
+                          + Otra subcategoría personalizada...
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {subcategorySelect === "__custom__" && (
+                      <Input
+                        placeholder="Identificador de la subcategoría (ej: nueva_subcategoria)..."
+                        value={customSubcategory}
+                        onChange={(e) => setCustomSubcategory(e.target.value)}
+                        className="mt-1.5"
+                      />
+                    )}
+                    <input
+                      type="hidden"
+                      name="subcategory"
+                      value={
+                        subcategorySelect === "__none__"
+                          ? ""
+                          : subcategorySelect === "__custom__"
+                          ? customSubcategory.trim()
+                          : subcategorySelect
+                      }
+                    />
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -551,7 +898,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
             </Tabs>
 
             {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
-            <DialogFooter className="mt-4 gap-2 flex-wrap">
+            <DialogFooter className="mt-4 gap-2 flex-wrap items-center">
               {editingProduct && (
                 <Button
                   type="button"
@@ -568,9 +915,39 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                   Duplicar producto
                 </Button>
               )}
-              <Button type="button" variant="outline" onClick={() => setProductDialog(false)}>Cancelar</Button>
-              <Button type="submit" disabled={isPending} className="bg-blue-600 hover:bg-blue-700">
-                {isPending ? "Guardando..." : "Guardar"}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setProductDialog(false)}
+              >
+                {editingProduct ? "Cerrar" : "Cancelar"}
+              </Button>
+              {editingProduct && (
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => {
+                    submitIntentRef.current = "saveAndClose"
+                  }}
+                  className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                >
+                  {isPending && submitIntentRef.current === "saveAndClose" ? "Guardando..." : "Guardar y cerrar"}
+                </Button>
+              )}
+              <Button
+                type="submit"
+                disabled={isPending}
+                onClick={() => {
+                  submitIntentRef.current = "save"
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isPending && submitIntentRef.current === "save"
+                  ? "Guardando..."
+                  : editingProduct
+                  ? "Guardar"
+                  : "Crear producto"}
               </Button>
             </DialogFooter>
           </form>

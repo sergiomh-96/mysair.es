@@ -86,9 +86,19 @@ export function StringListField({
           </Label>
           {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
         </div>
-        <span className="text-xs font-medium text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-          {items.length} {items.length === 1 ? "elemento" : "elementos"}
-        </span>
+        <div className="flex items-center gap-2">
+          {isImage && (
+            <MediaPickerModal
+              onSelect={(url) => addItem(url)}
+              triggerLabel="Subir"
+              triggerVariant="outline"
+              className="h-7 px-2.5 text-xs text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100 font-semibold gap-1.5"
+            />
+          )}
+          <span className="text-xs font-medium text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+            {items.length} {items.length === 1 ? "elemento" : "elementos"}
+          </span>
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -130,12 +140,12 @@ export function StringListField({
               {isImage && (
                 <MediaPickerModal
                   onSelect={(url) => updateItem(idx, url)}
-                  triggerLabel={item?.trim() ? "Cambiar" : "Subir"}
+                  triggerLabel={item?.trim() ? "Cambiar" : "Seleccionar imagen"}
                   triggerVariant={item?.trim() ? "ghost" : "outline"}
-                  className={`h-8 px-2.5 ${
+                  className={`h-8 px-2.5 text-xs shrink-0 ${
                     item?.trim()
                       ? "text-slate-500 hover:text-blue-600"
-                      : "text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100/80 font-semibold"
+                      : "text-blue-700 bg-blue-50/80 border-blue-200 hover:bg-blue-100/80 font-medium"
                   }`}
                 />
               )}

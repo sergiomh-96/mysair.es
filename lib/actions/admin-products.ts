@@ -17,16 +17,30 @@ export async function upsertProduct(formData: FormData) {
   const supabase = await createServerClient()
   const id = formData.get("id") ? Number(formData.get("id")) : undefined
 
+  const name = formData.get("name") ? String(formData.get("name")).trim() : ""
+  const slug = formData.get("slug") ? String(formData.get("slug")).trim() : ""
+  const category = formData.get("category") ? String(formData.get("category")).trim() : ""
+
+  if (!name) {
+    throw new Error("El nombre del producto es obligatorio.")
+  }
+  if (!slug) {
+    throw new Error("El slug del producto es obligatorio.")
+  }
+  if (!category) {
+    throw new Error("La categoría del producto es obligatoria.")
+  }
+
   const payload: Record<string, unknown> = {
-    name: formData.get("name"),
-    slug: formData.get("slug"),
-    description: formData.get("description"),
-    category: formData.get("category"),
-    subcategory: formData.get("subcategory") || null,
+    name,
+    slug,
+    description: formData.get("description") ? String(formData.get("description")).trim() : null,
+    category,
+    subcategory: formData.get("subcategory") ? String(formData.get("subcategory")).trim() : null,
     is_featured: formData.get("is_featured") === "true",
-    is_active: formData.get("is_active") === "true",
+    is_active: formData.get("is_active") !== "false",
     sort_order: Number(formData.get("sort_order")) || 0,
-    stl_model_url: formData.get("stl_model_url") || null,
+    stl_model_url: formData.get("stl_model_url") ? String(formData.get("stl_model_url")).trim() : null,
   }
 
   // Parse JSON fields safely
@@ -45,16 +59,29 @@ export async function upsertProduct(formData: FormData) {
     }
   }
 
+  let savedData = null
   if (id) {
-    const { error } = await supabase.from("products").update(payload).eq("id", id)
+    const { data, error } = await supabase
+      .from("products")
+      .update(payload)
+      .eq("id", id)
+      .select("*, product_videos(*)")
+      .single()
     if (error) throw error
+    savedData = data
   } else {
-    const { error } = await supabase.from("products").insert(payload)
+    const { data, error } = await supabase
+      .from("products")
+      .insert(payload)
+      .select("*, product_videos(*)")
+      .single()
     if (error) throw error
+    savedData = data
   }
 
   revalidatePath("/admin/productos")
   revalidatePath("/productos")
+  return savedData
 }
 
 export async function bulkImportProducts(productsList: Record<string, unknown>[]) {
@@ -155,7 +182,7 @@ export async function duplicateProduct(id: number) {
   }
 
   // Generate unique slug
-  const baseSlug = `${original.slug}-copia`
+  const baseSlug = `${original.slug || "producto"}-copia`
   let candidateSlug = baseSlug
   let counter = 1
   while (true) {
@@ -167,11 +194,40 @@ export async function duplicateProduct(id: number) {
 
   const { id: _origId, created_at: _c, updated_at: _u, product_videos, ...rest } = original
 
+  const cloneJson = (val: unknown) => {
+    if (val === null || val === undefined) return null
+    if (typeof val === "object") {
+      try {
+        return JSON.parse(JSON.stringify(val))
+      } catch {
+        return val
+      }
+    }
+    return val
+  }
+
   const newProductPayload = {
     ...rest,
     name: `${original.name} (Copia)`,
     slug: candidateSlug,
     sort_order: (original.sort_order ?? 0) + 1,
+    // Explicit specifications cloning
+    technical_specs: cloneJson(original.technical_specs),
+    variants: cloneJson(original.variants),
+    dimensions: cloneJson(original.dimensions),
+    colors: cloneJson(original.colors),
+    fixation_types: cloneJson(original.fixation_types),
+    insulation_types: cloneJson(original.insulation_types),
+    lines_vias: cloneJson(original.lines_vias),
+    communication_types: cloneJson(original.communication_types),
+    // Explicit files and documentation cloning
+    image_url: cloneJson(original.image_url),
+    ficha_tecnica_url: cloneJson(original.ficha_tecnica_url),
+    manual_instalador_url: cloneJson(original.manual_instalador_url),
+    manual_usuario_url: cloneJson(original.manual_usuario_url),
+    bim_url: cloneJson(original.bim_url),
+    cad_url: cloneJson(original.cad_url),
+    stl_model_url: original.stl_model_url ?? null,
   }
 
   const { data: inserted, error: insertErr } = await supabase

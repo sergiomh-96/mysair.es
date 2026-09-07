@@ -370,6 +370,65 @@ export async function uploadStorageFile(
 }
 
 /**
+ * Upload multiple files into a specific folder and bucket at once.
+ */
+export async function bulkUploadStorageFiles(
+  folderPath: string,
+  formData: FormData,
+  bucketName = DEFAULT_BUCKET
+): Promise<{ uploaded: Array<{ url: string; path: string; name: string }>; count: number }> {
+  await ensureBucket(bucketName)
+  const supabase = await createServerClient()
+  const targetBucket = bucketName || DEFAULT_BUCKET
+
+  const files = formData.getAll("files") as File[]
+  if (!files || files.length === 0) {
+    throw new Error("No se han seleccionado archivos para subir.")
+  }
+
+  const cleanFolder = folderPath.replace(/^\/+|\/+$/g, "")
+  const uploaded: Array<{ url: string; path: string; name: string }> = []
+
+  for (const file of files) {
+    if (!file || typeof file.arrayBuffer !== "function") continue
+    const originalName = file.name
+    const ext = originalName.includes(".") ? originalName.split(".").pop()?.toLowerCase() : "jpg"
+    let base = originalName
+      .replace(/\.[^/.]+$/, "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-|-$/g, "")
+    if (!base) base = `file-${Date.now()}`
+    const finalFileName = `${base}.${ext}`
+    const finalFilePath = cleanFolder ? `${cleanFolder}/${finalFileName}` : finalFileName
+
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = new Uint8Array(arrayBuffer)
+
+    const { error } = await supabase.storage.from(targetBucket).upload(finalFilePath, buffer, {
+      contentType: file.type || "application/octet-stream",
+      upsert: true,
+    })
+
+    if (error) {
+      console.warn(`[admin-storage] Error uploading ${finalFileName}:`, error.message)
+      continue
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(targetBucket).getPublicUrl(finalFilePath)
+    uploaded.push({
+      url: publicUrlData.publicUrl,
+      path: finalFilePath,
+      name: finalFileName,
+    })
+  }
+
+  revalidatePath("/admin/multimedia")
+  return { uploaded, count: uploaded.length }
+}
+
+/**
  * Replace an existing file in storage by overwriting its content (upsert: true).
  * This preserves the exact file path and public URL.
  */
