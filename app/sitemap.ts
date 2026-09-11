@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from("products")
     .select("slug, updated_at")
 
-  const productRoutes = (products || []).map((product) => ({
+  const productRoutes = (products || []).map((product: { slug: string; updated_at: string | null }) => ({
     url: `${baseUrl}/productos/${product.slug}`,
     lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
     changeFrequency: 'weekly' as const,
@@ -46,12 +46,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("slug, updated_at, route_type")
     .eq("published", true)
 
-  const blogRoutes = (posts || []).map((post) => ({
-    url: `${baseUrl}/${post.route_type || 'blogs'}/${post.slug}`,
-    lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.5,
-  }))
+  const blogRoutes = (posts || []).map((post: { slug: string; updated_at: string | null; route_type?: string | null }) => {
+    const isRoot = post.route_type === "root" || post.route_type === "" || post.route_type === "/"
+    const path = isRoot ? `/${post.slug}` : `/${post.route_type || 'blogs'}/${post.slug}`
+    return {
+      url: `${baseUrl}${path}`,
+      lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    }
+  })
 
   return [
     ...staticRoutes,

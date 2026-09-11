@@ -71,12 +71,15 @@ export function ProductsGrid({ filters }: ProductsGridProps) {
   useEffect(() => {
     let filtered = products
 
+    const isSearching = searchTerm.trim().length > 0
+
     // Apply search filter
-    if (searchTerm.trim()) {
+    if (isSearching) {
+      const term = searchTerm.toLowerCase().trim()
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase()),
+          (product.name || "").toLowerCase().includes(term) ||
+          (product.description || "").toLowerCase().includes(term),
       )
     }
 
@@ -95,8 +98,8 @@ export function ProductsGrid({ filters }: ProductsGridProps) {
       filtered = filtered.filter((product) => product.is_featured)
     }
 
-    // Apply inactive filter (hide by default, show if filters.showInactive is true)
-    if (!filters.showInactive) {
+    // Apply inactive filter (hide by default, show if filters.showInactive is true OR if the user is searching)
+    if (!filters.showInactive && !isSearching) {
       filtered = filtered.filter((product) => product.is_active !== false)
     }
 

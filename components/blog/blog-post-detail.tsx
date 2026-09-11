@@ -45,6 +45,20 @@ function slugify(text: string) {
     .replace(/(^-|-$)/g, "")
 }
 
+function renderSectionHtml(content: string) {
+  if (!content) return ""
+  // If content has no HTML tags, preserve newlines as line breaks
+  if (!/<[a-z][\s\S]*>/i.test(content)) {
+    return content.replace(/\n/g, "<br/>")
+  }
+  return content
+    .replace(/\[cite:\s*\d+\]/g, "")
+    .replace(/<TableOfContents\s*\/?>/gi, "")
+    .replace(/<HighlightBox>([\s\S]*?)<\/HighlightBox>/gi, '<div class="bg-blue-50/80 border-l-4 border-blue-500 rounded-r-lg p-4 my-4 text-blue-950 font-medium text-sm leading-relaxed">$1</div>')
+    .replace(/<FAQAccordion>([\s\S]*?)<\/FAQAccordion>/gi, '<div class="space-y-3 my-6">$1</div>')
+    .replace(/<FAQItem\s+question=["']([^"']+)["']>([\s\S]*?)<\/FAQItem>/gi, '<details class="group bg-slate-50 border border-slate-200 rounded-lg p-3.5 transition-colors [&_summary::-webkit-details-marker]:hidden"><summary class="flex items-center justify-between font-semibold text-slate-800 cursor-pointer select-none text-base"><span>$1</span><span class="text-blue-600 transition group-open:rotate-180">▾</span></summary><div class="mt-2.5 text-slate-600 text-sm leading-relaxed border-t border-slate-200/60 pt-2.5">$2</div></details>')
+}
+
 export function BlogPostDetail({ post }: BlogPostDetailProps) {
   const { t, locale } = useI18n()
   const sections: Section[] = post.sections ?? []
@@ -192,9 +206,10 @@ export function BlogPostDetail({ post }: BlogPostDetailProps) {
                       </h3>
                     )}
                     {section.content && (
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-line prose prose-base max-w-none">
-                        {section.content}
-                      </div>
+                      <div
+                        className="text-gray-700 leading-relaxed prose prose-base max-w-none prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 prose-strong:text-gray-900"
+                        dangerouslySetInnerHTML={{ __html: renderSectionHtml(section.content) }}
+                      />
                     )}
                   </section>
                 ))}

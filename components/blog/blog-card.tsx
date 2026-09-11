@@ -69,7 +69,8 @@ export function BlogCard({ post }: BlogCardProps) {
   }
 
   const CategoryIcon = getCategoryIcon(post.category)
-  const postHref = `/${post.route_type ?? "blogs"}/${post.slug}`
+  const isRoot = post.route_type === "root" || post.route_type === "" || post.route_type === "/"
+  const postHref = isRoot ? `/${post.slug}` : `/${post.route_type ?? "blogs"}/${post.slug}`
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">

@@ -1,6 +1,6 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
 interface ProductsSearchProps {
@@ -19,8 +19,18 @@ export function ProductsSearch({ searchTerm, onSearchChange }: ProductsSearchPro
         placeholder="Buscar productos por nombre o descripción..."
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="pl-10 pr-9 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
+      {searchTerm && (
+        <button
+          type="button"
+          onClick={() => onSearchChange("")}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+          title="Borrar búsqueda"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
     </div>
   )
 }

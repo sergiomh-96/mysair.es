@@ -48,7 +48,10 @@ export async function upsertBlog(formData: FormData) {
     published: formData.get("published") === "true",
     featured: formData.get("featured") === "true",
     reading_time: Number(formData.get("reading_time")) || null,
-    route_type: formData.get("route_type") || "blogs",
+    route_type: (() => {
+      const raw = formData.get("route_type") ? String(formData.get("route_type")).trim() : "blogs"
+      return (raw === "root" || raw === "/" || raw === "") ? "root" : raw.replace(/^\/+|\/+$/g, "").toLowerCase()
+    })(),
     published_at: publishedAt,
     // SEO fields
     meta_title: formData.get("meta_title") ? String(formData.get("meta_title")).trim() : null,
@@ -168,7 +171,8 @@ export async function bulkImportBlogs(blogsList: Record<string, unknown>[]) {
     const published = item.published === true || item.published === "true" || item.publicado === true || item.publicado === "true" || item.Publicado === "SI" || item.Publicado === "Sí"
     const featured = item.featured === true || item.featured === "true" || item.destacado === true || item.destacado === "true" || item.Destacado === "SI" || item.Destacado === "Sí"
     const reading_time = Number(item.reading_time || item.tiempo_lectura) || null
-    const route_type = (item.route_type || item.ruta) === "blog" ? "blog" : "blogs"
+    const rawRoute = String(item.route_type || item.ruta || "blogs").trim()
+    const route_type = (rawRoute === "root" || rawRoute === "/" || rawRoute === "") ? "root" : rawRoute.replace(/^\/+|\/+$/g, "").toLowerCase()
     const image_url = item.image_url || item.imagen || item.Imagen ? String(item.image_url || item.imagen || item.Imagen) : null
     const meta_title = item.meta_title ? String(item.meta_title) : null
     const meta_description = item.meta_description ? String(item.meta_description) : null
