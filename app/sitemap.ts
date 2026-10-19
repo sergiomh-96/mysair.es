@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/productos/vmc',
     '/software',
     '/software/mys-solver',
+    '/software/mysdraw',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),

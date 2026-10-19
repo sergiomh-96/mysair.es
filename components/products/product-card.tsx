@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Wind, Settings, Star } from "lucide-react"
 import { useI18n } from "@/lib/i18n-context"
+import { getProductMainImage } from "@/lib/utils/product-image"
 
 interface Product {
   id: number
@@ -13,7 +14,7 @@ interface Product {
   category: string
   subcategory: string
   price: number
-  image_url: string | string[] // Updated to support both string and array
+  image_url: any
   technical_specs: any
   is_featured: boolean
   sort_order: number // Added sort_order field for manual ordering
@@ -27,13 +28,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { t } = useI18n()
-
-  const getFirstImage = (imageUrl: string | string[]) => {
-    if (Array.isArray(imageUrl)) {
-      return imageUrl[0] || "/placeholder.svg?height=200&width=300"
-    }
-    return imageUrl || "/placeholder.svg?height=200&width=300"
-  }
+  const mainImage = getProductMainImage(product.image_url)
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -112,8 +107,8 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
         <div className="w-48 h-48 bg-gray-100 overflow-hidden mx-auto">
           <img
-            src={getFirstImage(product.image_url) || "/placeholder.svg"}
-            alt={product.name}
+            src={mainImage.url || "/placeholder.svg"}
+            alt={mainImage.alt || product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </div>

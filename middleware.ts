@@ -57,7 +57,9 @@ export async function middleware(request: NextRequest) {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3YXF6anVnaGhuZGZweGppYWZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODkyNTEsImV4cCI6MjA3MzA2NTI1MX0.Y7O1P320s6kz7Nxs1zwUJIWiocMHD52dv3lo7Oam7Uo"
 
       if (supabaseUrl && supabaseKey) {
-        const url = `${supabaseUrl}/rest/v1/url_redirects?select=destination_url,redirect_type&source_path=eq.${encodeURIComponent(pathname)}&is_active=eq.true&limit=1`
+        const cleanPath = pathname.endsWith("/") && pathname.length > 1 ? pathname.slice(0, -1) : pathname
+        const slashPath = cleanPath + "/"
+        const url = `${supabaseUrl}/rest/v1/url_redirects?select=source_path,destination_url,redirect_type&source_path=in.(${encodeURIComponent(cleanPath)},${encodeURIComponent(slashPath)})&is_active=eq.true&limit=1`
         const res = await fetch(url, {
           headers: {
             apikey: supabaseKey,
@@ -69,7 +71,7 @@ export async function middleware(request: NextRequest) {
         if (res.ok) {
           const rows = await res.json()
           if (rows.length > 0) {
-            const { destination_url, redirect_type } = rows[0]
+            const { source_path: matchedPath, destination_url, redirect_type } = rows[0]
             // Fire-and-forget hit counter
             fetch(
               `${supabaseUrl}/rest/v1/rpc/increment_redirect_hits`,
@@ -80,10 +82,13 @@ export async function middleware(request: NextRequest) {
                   Authorization: `Bearer ${supabaseKey}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ path: pathname }),
+                body: JSON.stringify({ path: matchedPath || pathname }),
               }
             )
-            return NextResponse.redirect(destination_url, {
+            const targetUrl = destination_url.startsWith("http")
+              ? destination_url
+              : new URL(destination_url, request.url).toString()
+            return NextResponse.redirect(targetUrl, {
               status: redirect_type || 301,
             })
           }

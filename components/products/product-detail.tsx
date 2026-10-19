@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Cable as Cube } from "lucide-react"
 import { useI18n } from "@/lib/i18n-context"
 import { SolicitarPresupuestoBtn } from "./solicitar-presupuesto-btn"
+import { normalizeProductImages } from "@/lib/utils/product-image"
 
 interface DocumentLink {
   name: string
@@ -28,7 +29,7 @@ interface Product {
   category: string
   subcategory: string
   price: number
-  image_url: string[]
+  image_url: any
   technical_specs: any
   is_featured: boolean
   is_active: boolean
@@ -107,7 +108,10 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
   const cadFiles = normalizeDocuments(product.cad, product.cad_url, t("products.detail.cad"))
   const bimFiles = normalizeDocuments(product.bim, product.bim_url, t("products.detail.bim"))
 
-  const images = Array.isArray(product.image_url) ? product.image_url : [product.image_url].filter(Boolean)
+  const images = useMemo(() => {
+    const list = normalizeProductImages(product.image_url)
+    return list.length > 0 ? list : [{ url: "/placeholder.svg?height=500&width=500", alt: product.name }]
+  }, [product.image_url, product.name])
 
   const productReference = useMemo(() => {
     const parts: string[] = []
@@ -258,8 +262,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                   )}
 
                   <img
-                    src={images[currentImageIndex] || "/placeholder.svg?height=500&width=500"}
-                    alt={`${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
+                    src={images[currentImageIndex]?.url || "/placeholder.svg?height=500&width=500"}
+                    alt={images[currentImageIndex]?.alt || `${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover"
                   />
 
@@ -296,8 +300,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                         }`}
                       >
                         <img
-                          src={image || "/placeholder.svg?height=80&width=80"}
-                          alt={`${product.name} - Miniatura ${index + 1}`}
+                          src={image?.url || "/placeholder.svg?height=80&width=80"}
+                          alt={image?.alt || `${product.name} - Miniatura ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -331,8 +335,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                 )}
 
                 <img
-                  src={images[currentImageIndex] || "/placeholder.svg?height=500&width=500"}
-                  alt={`${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
+                  src={images[currentImageIndex]?.url || "/placeholder.svg?height=500&width=500"}
+                  alt={images[currentImageIndex]?.alt || `${product.name} - ${t("products.detail.images")} ${currentImageIndex + 1}`}
                   className="w-full h-full object-cover"
                 />
 
@@ -369,8 +373,8 @@ export function ProductDetail({ product, videos = [] }: ProductDetailProps) {
                       }`}
                     >
                       <img
-                        src={image || "/placeholder.svg?height=80&width=80"}
-                        alt={`${product.name} - Miniatura ${index + 1}`}
+                        src={image?.url || "/placeholder.svg?height=80&width=80"}
+                        alt={image?.alt || `${product.name} - Miniatura ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </button>

@@ -76,11 +76,18 @@ export default function SoftwarePage() {
               <p className="max-w-xl mb-6 flex-grow text-white">
                 {t("software.draw_desc")}
               </p>
-              <Link href="https://www.mysdraw.es/">
-                <Button size="lg" variant="secondary" className="text-lg px-8">
-                  {t("software.draw_btn")}
-                </Button>
-              </Link>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link href="/software/mysdraw">
+                  <Button size="lg" className="text-base sm:text-lg px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-lg">
+                    Conocer MYSDRAW Online
+                  </Button>
+                </Link>
+                <Link href="https://www.mysdraw.es/" target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" variant="secondary" className="text-base sm:text-lg px-6">
+                    {t("software.draw_btn")}
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

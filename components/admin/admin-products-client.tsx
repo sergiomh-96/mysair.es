@@ -16,6 +16,7 @@ import { upsertProduct, deleteProduct, upsertProductVideo, deleteProductVideo, b
 import { useRouter } from "next/navigation"
 import { DocumentListField } from "./document-list-field"
 import { StringListField } from "./string-list-field"
+import { ProductImageListField } from "./product-image-list-field"
 import { SpecListField } from "./spec-list-field"
 import { TechnicalSpecsField } from "./technical-specs-field"
 import { BulkExcelImport } from "./bulk-excel-import"
@@ -111,6 +112,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
   const [customCategory, setCustomCategory] = useState<string>("")
   const [subcategorySelect, setSubcategorySelect] = useState<string>("__none__")
   const [customSubcategory, setCustomSubcategory] = useState<string>("")
+  const [formProductName, setFormProductName] = useState<string>("")
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("")
@@ -180,6 +182,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
   function openNewProduct() {
     submitIntentRef.current = "save"
     setEditingProduct(null)
+    setFormProductName("")
     setCategorySelect("air_diffusion")
     setCustomCategory("")
     setSubcategorySelect("__none__")
@@ -191,6 +194,7 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
   function openEditProduct(p: Product) {
     submitIntentRef.current = "save"
     setEditingProduct(p)
+    setFormProductName(p.name || "")
     setError("")
 
     const existingCat = p.category || "air_diffusion"
@@ -609,7 +613,12 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="name">Nombre *</Label>
-                    <Input name="name" defaultValue={editingProduct?.name} required />
+                    <Input
+                      name="name"
+                      defaultValue={editingProduct?.name ?? ""}
+                      onChange={(e) => setFormProductName(e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="slug">Slug *</Label>
@@ -737,15 +746,12 @@ export function AdminProductsClient({ initialProducts }: { initialProducts: Prod
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <StringListField
+                  <ProductImageListField
                     name="image_url"
-                    label="Imágenes del producto"
-                    description="URLs de imágenes para la galería del producto"
+                    label="Imágenes del producto y atributos ALT"
+                    description="URLs de imágenes para la galería del producto y su texto ALT para posicionamiento SEO y accesibilidad"
                     initialValue={editingProduct?.image_url}
-                    placeholder="https://... o /images/products/..."
-                    addButtonText="Añadir imagen"
-                    emptyText="No hay imágenes añadidas."
-                    isImage={true}
+                    productName={formProductName || editingProduct?.name || ""}
                   />
                 </div>
                 <div className="space-y-1.5">
