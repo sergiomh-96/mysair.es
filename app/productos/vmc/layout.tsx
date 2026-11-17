@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import type React from "react"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildBreadcrumbSchema } from "@/lib/seo/structured-data"
 
 export const metadata: Metadata = {
   title: "Sistemas de Ventilación Mecánica Controlada (VMC) | MYSAir",
@@ -12,5 +14,16 @@ export default function VmcLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Inicio", url: "/" },
+          { name: "Productos", url: "/productos" },
+          { name: "VMC", url: "/productos/vmc" },
+        ])}
+      />
+      {children}
+    </>
+  )
 }

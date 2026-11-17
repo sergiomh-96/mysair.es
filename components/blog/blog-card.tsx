@@ -110,11 +110,6 @@ export function BlogCard({ post }: BlogCardProps) {
                 {tag}
               </span>
             ))}
-            {post.tags.length > 3 && (
-              <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                +{post.tags.length - 3} {t("products.detail.see_more").toLowerCase()}
-              </span>
-            )}
           </div>
 
           {/* Meta */}

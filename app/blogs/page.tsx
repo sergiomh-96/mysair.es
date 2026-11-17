@@ -5,6 +5,8 @@ import { Footer } from "@/components/footer"
 import { BlogHeader } from "@/components/blog/blog-header"
 import { BlogGrid } from "@/components/blog/blog-grid"
 import { BlogFilters } from "@/components/blog/blog-filters"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildBreadcrumbSchema } from "@/lib/seo/structured-data"
 
 export const metadata: Metadata = {
   title: "Blog de Climatización y Eficiencia Energética | MYSAir",
@@ -15,6 +17,12 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Inicio", url: "/" },
+          { name: "Blog", url: "/blogs" },
+        ])}
+      />
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

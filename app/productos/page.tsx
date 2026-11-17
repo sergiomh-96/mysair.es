@@ -3,6 +3,8 @@ import { Footer } from "@/components/footer"
 import { ProductsHeader } from "@/components/products/products-header"
 import { ProductsClient } from "@/components/products/products-client"
 import { SeoTextBlock } from "@/components/products/seo-text-block"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildBreadcrumbSchema } from "@/lib/seo/structured-data"
 import type { Metadata } from "next"
 
 const CATEGORY_SEO: Record<
@@ -57,8 +59,17 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const categoria = typeof resolvedSearchParams.categoria === "string" ? resolvedSearchParams.categoria : undefined
   const seoData = categoria ? CATEGORY_SEO[categoria] : undefined
 
+  const breadcrumbs = [
+    { name: "Inicio", url: "/" },
+    { name: "Productos", url: "/productos" },
+    ...(seoData && categoria
+      ? [{ name: seoData.h1, url: `/productos?categoria=${categoria}` }]
+      : []),
+  ]
+
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={buildBreadcrumbSchema(breadcrumbs)} />
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

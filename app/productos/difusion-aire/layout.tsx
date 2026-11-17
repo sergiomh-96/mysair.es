@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import type React from "react"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildBreadcrumbSchema } from "@/lib/seo/structured-data"
 
 export const metadata: Metadata = {
   title: "Rejillas de Aire Acondicionado y Sistemas de Difusión | MYSAir",
@@ -12,5 +14,16 @@ export default function DifusionAireLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <>
+      <JsonLd
+        data={buildBreadcrumbSchema([
+          { name: "Inicio", url: "/" },
+          { name: "Productos", url: "/productos" },
+          { name: "Difusión de Aire", url: "/productos/difusion-aire" },
+        ])}
+      />
+      {children}
+    </>
+  )
 }

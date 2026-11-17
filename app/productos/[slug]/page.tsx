@@ -3,6 +3,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ProductDetail } from "@/components/products/product-detail"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildBreadcrumbSchema, buildProductSchema } from "@/lib/seo/structured-data"
 import type { Metadata } from "next"
 
 interface ProductPageProps {
@@ -90,8 +92,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const seoConfig = PRODUCT_SEO[slug]
   const displayProduct = seoConfig ? { ...product, name: seoConfig.h1 } : product
 
+  const productUrl = `/productos/${slug}`
+  const productSchemas = [
+    buildProductSchema(displayProduct, productUrl),
+    buildBreadcrumbSchema([
+      { name: "Inicio", url: "/" },
+      { name: "Productos", url: "/productos" },
+      { name: displayProduct.name, url: productUrl },
+    ]),
+  ]
+
   return (
     <main className="min-h-screen">
+      <JsonLd data={productSchemas} />
       <Navigation />
       <ProductDetail product={displayProduct} videos={videos || []} />
       <Footer />

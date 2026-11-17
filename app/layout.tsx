@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 import { StickyContactButton } from "@/components/products/sticky-contact-button"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildOrganizationSchema, buildWebSiteSchema } from "@/lib/seo/structured-data"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-geist-sans" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" })
@@ -74,6 +76,8 @@ export default function RootLayout({
             __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "vu4emfqany");`,
           }}
         />
+        {/* Structured Data (Organization & WebSite) */}
+        <JsonLd data={[buildOrganizationSchema(), buildWebSiteSchema()]} />
       </head>
       <body className="font-sans" suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
