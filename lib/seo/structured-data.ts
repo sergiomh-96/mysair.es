@@ -1,9 +1,11 @@
+import { normalizeProductImages } from "@/lib/utils/product-image"
+
 export const SITE_URL = "https://www.mysair.es"
 export const SITE_NAME = "MYSAir"
 export const LOGO_URL = `${SITE_URL}/logo-mysair.png`
 
-export function toAbsoluteUrl(urlOrPath?: string | null): string | undefined {
-  if (!urlOrPath) return undefined
+export function toAbsoluteUrl(urlOrPath?: unknown): string | undefined {
+  if (typeof urlOrPath !== "string") return undefined
   const trimmed = urlOrPath.trim()
   if (!trimmed) return undefined
   if (/^https?:\/\//i.test(trimmed)) return trimmed
@@ -164,19 +166,23 @@ export interface ProductSchemaInput {
   name: string
   slug: string
   description?: string | null
-  image_url?: string | null
-  images?: string[] | null
+  image_url?: unknown
+  images?: unknown
   category?: string | null
   sku?: string | null
 }
 
 export function buildProductSchema(product: ProductSchemaInput, pageUrl: string) {
-  const rawImages = [
-    ...(Array.isArray(product.images) ? product.images : []),
-    ...(product.image_url ? [product.image_url] : []),
+  const normalizedImages = [
+    ...normalizeProductImages(product.images),
+    ...normalizeProductImages(product.image_url),
   ]
   const images = Array.from(
-    new Set(rawImages.map((img) => toAbsoluteUrl(img)).filter((img): img is string => Boolean(img)))
+    new Set(
+      normalizedImages
+        .map((img) => toAbsoluteUrl(img.url))
+        .filter((img): img is string => Boolean(img))
+    )
   )
 
   return {
